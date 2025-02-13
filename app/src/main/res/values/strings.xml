@@ -1,13 +1,21 @@
 <resources>
     <string name="app_name">StartxPlanify</string>
-     <string name="Day_Night">Day/Night</string>
-     <string name="welcome">Welcome to StartxPlanify </string>
+    <string name="Day_Night">Day/Night</string>
+    <string name="welcome">Welcome to StartxPlanify </string>
     <string name="powerd">Powerd By Amir</string>
     <string name="infoText">"Manage your tasks easily with StartixPlanify!"</string>
     <string name="infoText2">Plan, track, and achieve your goals with ease!"</string>
     <string name="infoText11">"Manage your tasks easily with StartixPlanify!"</string>
     <string name="infoText22">Plan, track, and achieve your goals with ease!"</string>
     <string name="start">Get Start</string>
+    <string name="login">Hi, "\n"Please Login</string>
+    <string name="email">Email</string>
+    <string name="EnterEmail">Enter Your Email</string>
+    <string name="pass">Password</string>
+    <string name="Enterpass">Password</string>
+
+
+
 
 
 </resources>
