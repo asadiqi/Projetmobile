@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-
+      //okk
         @SuppressLint("UseSwitchCompatOrMaterialCode")
         Switch themeSwitch = findViewById(R.id.switch1);
         themeSwitch.setChecked(isNightMode);
