@@ -15,6 +15,11 @@
     <string name="Enterpass">Password</string>
     <string name="dont_have_account">Don\'t have an account? Click here</string>
     <string name="login_button">Log-in</string>
+    <string name="signin">Create Account</string>
+    <string name="name">Name</string>
+    <string name="confirm_pass">Confirm password</string>
+
+
 
 
 
