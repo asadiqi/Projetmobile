@@ -37,14 +37,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main_land);
 
 
+        // button de get start et l'éevenment de click
         Button getStartButton = findViewById(R.id.button);
-
         getStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(intent);
-
             }
         });
 
