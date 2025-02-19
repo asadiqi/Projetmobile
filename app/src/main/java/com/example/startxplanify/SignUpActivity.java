@@ -18,7 +18,6 @@ import android.util.Patterns;
 public class SignUpActivity extends AppCompatActivity {
 
     // Les élement de signup activite
-
     private EditText editTextName,editTextEmail,editTextPassword,editTextConfirmPassword;
     private Button buttonSignUp;
 
@@ -61,51 +60,46 @@ public class SignUpActivity extends AppCompatActivity {
         String password = editTextPassword.getText().toString().trim();
         String confirmPassword = editTextConfirmPassword.getText().toString().trim();
 
-
-        if (TextUtils.isEmpty(name)) {
-            Toast.makeText(this, "Please Enter Your Name", Toast.LENGTH_SHORT).show();
+        //utilisation des methode isEmpty et isvalidEmail pour verifie les champs
+        if (isEmpty(name,"Please Enter Your Name")) return;
+        if (isEmpty(email,"Please Enter an Email")) return;
+        if (!isValidEmail(email)) return;
+        if (isEmpty(password,"Please Enter a Password")) return;
+        if (password.length()<6) {
+            showToast("Password must contain at least 6 characters");
             return;
         }
-
-
-        if (TextUtils.isEmpty(email)) {
-            Toast.makeText(this, "Please Enter an Email", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Vérification de la validité de l'email
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this, "Please Enter a valid email", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-
-        if (TextUtils.isEmpty(password)) {
-            Toast.makeText(this, "Please Enter a Password", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Vérification de la longueur du mot de passe
-        if (password.length() < 6) {
-            Toast.makeText(this, "Password must contain at least 6 characters", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (TextUtils.isEmpty(confirmPassword)) {
-            Toast.makeText(this, "Please Confirm Your Password", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-
-        // Vérification que les mots de passe correspondent
+        if (isEmpty(confirmPassword,"Please Confirm Your Password")) return;
         if (!password.equals(confirmPassword)) {
-            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            showToast("Passwords do not match");
             return;
         }
-
-
         // Inscription réussie
-        Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+        showToast("Registration successful");
     }
 
+    //Methode pour vérifier que le champs n'es pas vide
+    private boolean isEmpty(String field,String message) {
+
+        if (TextUtils.isEmpty(field)) {
+            showToast(message);
+            return true;
+        }
+        return false;
+
+    }
+
+    //Methode pour vérifier la validité d'email
+    private boolean isValidEmail(String email) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            showToast("Please Enter a valid email");
+            return false;
+        }
+        return true;
+    }
+
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
 }
