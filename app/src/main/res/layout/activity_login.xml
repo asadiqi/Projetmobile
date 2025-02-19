@@ -46,7 +46,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView2"
         app:layout_constraintVertical_bias="0.035"
-        tools:ignore="UnknownId" />
+        tools:ignore="UnknownId,UnknownIdInLayout" />
 
     <TextView
         android:id="@+id/textViewPassword"
@@ -106,26 +106,30 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="56dp"
+        android:text="@string/dont_have_account"
+        android:textColor="@color/bleu"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/bleu"
-        android:text="@string/dont_have_account"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/button2"
-        android:layout_width="118dp"
-        android:layout_height="47dp"
+        android:id="@+id/button"
+        android:layout_width="142dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="164dp"
+        android:layout_marginBottom="108dp"
+        android:background="@drawable/background_button_intro"
         android:text="@string/login_button"
-        app:layout_constraintBottom_toTopOf="@+id/textView_dont_have_account"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextPassword"
-        app:layout_constraintVertical_bias="0.704" />
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintVertical_bias="0.872"
+        tools:ignore="UnknownIdInLayout" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
