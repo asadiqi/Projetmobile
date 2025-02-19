@@ -64,7 +64,7 @@
     <EditText
         android:id="@+id/editTextEmil"
         android:layout_width="365dp"
-        android:layout_height="46dp"
+        android:layout_height="48dp"
         android:layout_margin="12dp"
         android:layout_marginTop="12dp"
         android:autofillHints="zdz"
@@ -84,7 +84,7 @@
     <EditText
         android:id="@+id/editTextPassword"
         android:layout_width="365dp"
-        android:layout_height="46dp"
+        android:layout_height="48dp"
         android:layout_margin="12dp"
         android:layout_marginTop="4dp"
         android:autofillHints="zdz"
@@ -119,17 +119,29 @@
         android:id="@+id/buttonLogin"
         android:layout_width="142dp"
         android:layout_height="46dp"
-        android:layout_marginTop="164dp"
-        android:layout_marginBottom="108dp"
+        android:layout_marginTop="80dp"
         android:background="@drawable/background_button_intro"
         android:text="@string/login_button"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/textView_dont_have_account"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintVertical_bias="0.872"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPassword"
         tools:ignore="UnknownIdInLayout" />
+
+    <TextView
+        android:id="@+id/textViewForgotPass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/forgotPass"
+        android:textColor="@color/bleu"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_dont_have_account" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

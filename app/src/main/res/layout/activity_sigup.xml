@@ -51,7 +51,7 @@
     <EditText
         android:id="@+id/nameInput"
         android:layout_width="365dp"
-        android:layout_height="46dp"
+        android:layout_height="50dp"
         android:layout_margin="12dp"
         android:background="@drawable/edittext_background"
         android:hint="@string/EnterName"
@@ -81,7 +81,7 @@
     <EditText
         android:id="@+id/emailInput"
         android:layout_width="365dp"
-        android:layout_height="46dp"
+        android:layout_height="50dp"
         android:layout_margin="12dp"
         android:background="@drawable/edittext_background"
         android:hint="@string/EnterEmail"
@@ -111,7 +111,7 @@
     <EditText
         android:id="@+id/passwordInput"
         android:layout_width="365dp"
-        android:layout_height="46dp"
+        android:layout_height="50dp"
         android:layout_margin="12dp"
         android:background="@drawable/edittext_background"
         android:hint="@string/Enterpass"
@@ -141,7 +141,7 @@
     <EditText
         android:id="@+id/confirmPasswordInput"
         android:layout_width="365dp"
-        android:layout_height="46dp"
+        android:layout_height="50dp"
         android:layout_margin="12dp"
         android:background="@drawable/edittext_background"
         android:hint="@string/Enterpass"
