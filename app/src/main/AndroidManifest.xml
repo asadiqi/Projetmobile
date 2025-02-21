@@ -15,7 +15,9 @@
 
         <activity
             android:name="NoteActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:configChanges="orientation|screenSize" />
+
         <activity
             android:name="SignUpActivity"
             android:exported="false" />
@@ -35,3 +37,4 @@
     </application>
 
 </manifest>
+

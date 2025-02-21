@@ -6,5 +6,7 @@
     <color name="gray">#D3D3D3</color>
     <color name="text_color">#707070</color>
     <color name="bleu">#1146f2</color>
+    <color name="headerColor">#20c978</color>
+
 
 </resources>

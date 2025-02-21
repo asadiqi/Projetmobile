@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Le menu principal avec l'icône du menu hamburger -->
+    <item
+        android:id="@+id/menu_button"
+        android:title=""
+        app:showAsAction="always"
+        android:icon="@drawable/baseline_menu_24">
+
+        <!-- Menu déroulant (qui apparaîtra lorsqu'on clique sur l'icône du menu hamburger) -->
+        <menu>
+            <item
+                android:id="@+id/home"
+                android:title="Home"
+                app:showAsAction="never"
+                android:icon="@drawable/home" />
+            <item
+                android:id="@+id/settings"
+                android:title="Settings"
+                app:showAsAction="never"
+                android:icon="@drawable/nav_settings" />
+            <item
+                android:id="@+id/about"
+                android:title="About Us"
+                app:showAsAction="never"
+                android:icon="@drawable/nav_about" />
+            <item
+                android:id="@+id/logout"
+                android:title="Logout"
+                app:showAsAction="never"
+                android:icon="@drawable/nav_logout" />
+        </menu>
+    </item>
+
+</menu>

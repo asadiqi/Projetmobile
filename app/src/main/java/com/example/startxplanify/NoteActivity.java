@@ -3,9 +3,14 @@ package com.example.startxplanify;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Switch;
+import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
@@ -14,9 +19,44 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class NoteActivity extends AppCompatActivity {
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Gonfle le menu depuis le fichier XML
+        getMenuInflater().inflate(R.menu.menu_bar, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.home) {
+            Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show();
+            return true;
+        } else if (item.getItemId() == R.id.about) {
+            Toast.makeText(this, "About", Toast.LENGTH_SHORT).show();
+            return true;
+        } else if (item.getItemId() == R.id.settings) {
+            Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();
+            return true;
+        } else if (item.getItemId() == R.id.logout) {
+            Toast.makeText(this, "Logout", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_note);
+
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar); // Cela permet d'afficher le menu dans la Toolbar
+
 
         // Charger les préférences après le super.onCreate
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
@@ -29,7 +69,6 @@ public class NoteActivity extends AppCompatActivity {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
 
-        setContentView(R.layout.activity_note);
 
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
