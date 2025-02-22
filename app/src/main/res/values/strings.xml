@@ -23,6 +23,8 @@
     <string name="name">Name</string>
     <string name="confirm_pass">Confirm password</string>
     <string name="EnterName">Enter Your Name</string>
+    <string name="open_drawer">Ouvrir le menu</string>
+    <string name="close_drawer">Fermer le menu</string>
 
 
 

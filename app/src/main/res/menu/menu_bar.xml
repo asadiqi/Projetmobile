@@ -1,37 +1,56 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <!-- Le menu principal avec l'icône du menu hamburger -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/menu_button"
-        android:title=""
-        app:showAsAction="always"
-        android:icon="@drawable/baseline_menu_24">
+        android:id="@+id/nav_home"
+        android:title="🏠  Home"/>
 
-        <!-- Menu déroulant (qui apparaîtra lorsqu'on clique sur l'icône du menu hamburger) -->
-        <menu>
-            <item
-                android:id="@+id/home"
-                android:title="Home"
-                app:showAsAction="never"
-                android:icon="@drawable/home" />
-            <item
-                android:id="@+id/settings"
-                android:title="Settings"
-                app:showAsAction="never"
-                android:icon="@drawable/nav_settings" />
-            <item
-                android:id="@+id/about"
-                android:title="About Us"
-                app:showAsAction="never"
-                android:icon="@drawable/nav_about" />
-            <item
-                android:id="@+id/logout"
-                android:title="Logout"
-                app:showAsAction="never"
-                android:icon="@drawable/nav_logout" />
-        </menu>
-    </item>
+
+    <item
+        android:id="@+id/nav_my_tasks"
+        android:title="📅  My Tasks"/>
+
+    <item
+        android:id="@+id/nav_announcements"
+        android:title="📢  Announcements"/>
+
+    <item
+        android:id="@+id/nav_about"
+        android:title="ℹ️  About Us"/>
+    <item
+        android:id="@+id/nav_settings"
+        android:title="⚙️  Settings"/>
+    <item
+        android:title=" "
+        android:enabled="false"/>
+    <item
+        android:title=" "
+        android:enabled="false"/>
+    <item
+        android:title=" "
+        android:enabled="false"/>
+    <item
+        android:title=" "
+        android:enabled="false"/>
+    <item
+        android:title=" "
+        android:enabled="false"/>
+    <item
+        android:title=" "
+        android:enabled="false"/>
+
+    <item
+        android:title=" "
+        android:enabled="false"/>
+
+    <item
+        android:title=" "
+        android:enabled="false"/>
+
+    <item
+        android:title=" "
+        android:enabled="false"/>
+
+    <item
+        android:id="@+id/nav_logout"
+        android:title="🚪  Logout"/>
 
 </menu>

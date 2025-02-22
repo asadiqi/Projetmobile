@@ -7,56 +7,52 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Switch;
 import android.widget.Toast;
-import androidx.appcompat.widget.Toolbar;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import com.google.android.material.navigation.NavigationView;
 
 public class NoteActivity extends AppCompatActivity {
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Gonfle le menu depuis le fichier XML
-        getMenuInflater().inflate(R.menu.menu_bar, menu);
-        return true;
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.home) {
-            Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (item.getItemId() == R.id.about) {
-            Toast.makeText(this, "About", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (item.getItemId() == R.id.settings) {
-            Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (item.getItemId() == R.id.logout) {
-            Toast.makeText(this, "Logout", Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_note);
 
-
+        // Récupérer la Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar); // Cela permet d'afficher le menu dans la Toolbar
+        setSupportActionBar(toolbar);
 
+        // Initialiser le DrawerLayout et NavigationView
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+
+        // Ajouter le bouton hamburger ☰
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar, R.string.open_drawer, R.string.close_drawer);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // Gérer les clics sur le menu
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                Toast.makeText(NoteActivity.this, "Home sélectionné", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_settings) {
+                Toast.makeText(NoteActivity.this, "Settings sélectionné", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_logout) {
+                Toast.makeText(NoteActivity.this, "Logout sélectionné", Toast.LENGTH_SHORT).show();
+            }
+            drawerLayout.closeDrawers(); // Fermer le menu après un clic
+            return true;
+        });
 
         // Charger les préférences après le super.onCreate
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
@@ -69,22 +65,19 @@ public class NoteActivity extends AppCompatActivity {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
 
-
-
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    Switch themeSwitch = findViewById(R.id.switchTheme);
+        // Gérer le Switch pour le mode nuit
+        @SuppressLint("UseSwitchCompatOrMaterialCode")
+        Switch themeSwitch = findViewById(R.id.switchTheme);
         themeSwitch.setChecked(isNightMode);
 
         themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("night_mode", isChecked);
+            editor.apply();
 
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("night_mode",isChecked);
-        editor.apply();
-
-        AppCompatDelegate.setDefaultNightMode(isChecked? AppCompatDelegate.MODE_NIGHT_YES: AppCompatDelegate.MODE_NIGHT_NO);
-    });
-}
-
+            AppCompatDelegate.setDefaultNightMode(isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
+        });
+    }
 
 
 
