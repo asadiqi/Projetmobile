@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,13 +23,22 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.navigation.NavigationView;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class NoteActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private Button buttonAddNote ;
+    private TextView textViewTaskStartDate, textViewTaskEndDate;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,30 +120,21 @@ public class NoteActivity extends AppCompatActivity {
 
         // Initialiser les champs de texte dans le dialogue
         EditText privateTaskTitle = dialogView.findViewById(R.id.editprivateTasktitle);
-        EditText privateTaskStartDate = dialogView.findViewById(R.id.editprivateTaskStartDate);
-        EditText privateTaskEndDate = dialogView.findViewById(R.id.editprivateTaskEndtDate);
+        textViewTaskStartDate = dialogView.findViewById(R.id.textViewTaskStartDate);
+        textViewTaskEndDate = dialogView.findViewById(R.id.textViewTaskEndDate);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Private Task")
                 .setView(dialogView)
                 .setPositiveButton("Add", (dialog, which) -> {
                     String title = privateTaskTitle.getText().toString();
-                    String startDate = privateTaskStartDate.getText().toString();
-                    String endDate = privateTaskEndDate.getText().toString();
 
                     // Validation des champs
                     if (title.isEmpty()) {
                         Toast.makeText(this, "Please enter a Title", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    if (startDate.isEmpty()) {
-                        Toast.makeText(this, "Please select a Start Date and Time", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if (endDate.isEmpty()) {
-                        Toast.makeText(this, "Please select an End Date and Time", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+
 
                     Toast.makeText(NoteActivity.this, "Task Added", Toast.LENGTH_SHORT).show();
                 })
@@ -142,27 +143,38 @@ public class NoteActivity extends AppCompatActivity {
                 .show();
 
         // Ajouter des écouteurs pour la date et l'heure
-        privateTaskStartDate.setOnClickListener(v -> showDateTimePicker(privateTaskStartDate));
-        privateTaskEndDate.setOnClickListener(v -> showDateTimePicker(privateTaskEndDate));
+        textViewTaskStartDate.setOnClickListener(v -> showDateTimePicker(textViewTaskStartDate));
+        textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
     }
 
     // Fonction pour afficher le DatePickerDialog et TimePickerDialog
-    private void showDateTimePicker(EditText editText) {
-        Calendar calendar = Calendar.getInstance();
+    // Fonction pour afficher le sélecteur de date et d'heure
+    private void showDateTimePicker(TextView textView) {
+        final Calendar calendar = Calendar.getInstance();
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this,
                 (view, year, month, dayOfMonth) -> {
+                    calendar.set(Calendar.YEAR, year);
+                    calendar.set(Calendar.MONTH, month);
+                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
                     TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                             (timeView, hourOfDay, minute) -> {
-                                // Formater et afficher la date et l'heure sélectionnées
-                                String dateTime = year + "-" + (month + 1) + "-" + dayOfMonth + " " +
-                                        String.format("%02d", hourOfDay) + ":" + String.format("%02d", minute);
-                                editText.setText(dateTime);
+                                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                                calendar.set(Calendar.MINUTE, minute);
+
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                                textView.setText(dateFormat.format(calendar.getTime()));
                             },
-                            calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            true);
                     timePickerDialog.show();
                 },
-                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH));
+
         datePickerDialog.show();
     }
 
