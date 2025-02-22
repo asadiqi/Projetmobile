@@ -35,10 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
         } else { // si non on reste dans l'interface Main
 
-            EdgeToEdge.enable(this);
             setContentView(R.layout.activity_main_land);
         }
-
 
         // button de get start et l'éevenment de click
         Button getStartButton = findViewById(R.id.button);

@@ -132,7 +132,7 @@ public class LoginActivity extends AppCompatActivity {
 
         db.collection("users").document(userId)
                 .set(userData)
-                .addOnSuccessListener(aVoid -> showToast("User registered in database"))
+                .addOnSuccessListener(aVoid -> showToast("You are Loged in"))
                 .addOnFailureListener(e -> showToast("Database error: " + e.getMessage()));
     }
 

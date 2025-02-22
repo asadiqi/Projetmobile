@@ -1,6 +1,7 @@
 package com.example.startxplanify;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
@@ -48,7 +49,15 @@ public class NoteActivity extends AppCompatActivity {
             } else if (id == R.id.nav_settings) {
                 Toast.makeText(NoteActivity.this, "Settings sélectionné", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_logout) {
-                Toast.makeText(NoteActivity.this, "Logout sélectionné", Toast.LENGTH_SHORT).show();
+                SharedPreferences sharesdPreferences = getSharedPreferences("settings",MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharesdPreferences.edit();
+                editor.putBoolean("is_logged_in",false);
+                editor.apply();
+                // Rediriger vers MainActivity (écran d'accueil)
+                Intent intent = new Intent(NoteActivity.this,MainActivity.class);
+                startActivity(intent);
+                finish();
+                Toast.makeText(NoteActivity.this, "You are Loged out", Toast.LENGTH_SHORT).show();
             }
             drawerLayout.closeDrawers(); // Fermer le menu après un clic
             return true;
