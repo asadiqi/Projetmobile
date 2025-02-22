@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="false">
+        <shape android:shape="oval">
+            <corners android:radius="8dp"/> <!-- Coins légèrement arrondis -->
+            <solid android:color="@color/khaki"/>
+            <stroke android:width="2dp" android:color="@color/black"/> <!-- Bordure fine -->
+            <padding android:left="12dp" android:right="12dp"/>
+        </shape>
+    </item>
+
+
+</selector>
