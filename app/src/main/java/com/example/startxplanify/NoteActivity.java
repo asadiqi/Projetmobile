@@ -184,9 +184,8 @@ public class NoteActivity extends AppCompatActivity {
                             .set(task)
                             .addOnSuccessListener(aVoid -> {
                                 // Appeler la méthode pour ajouter la tâche à l'interface
-                                addTaskToUI(taskTitle, startDate, endDate);
-                                // Après l'ajout de la tâche, on recharge la liste des tâches depuis Firestore
-                                refreshTaskList();
+                                View taskView = addTaskToUI(taskTitle, startDate, endDate);
+                                taskView.setTag(taskId); // Assure que l'ID est bien attaché immédiatement
                                 Toast.makeText(this, "Task Added", Toast.LENGTH_SHORT).show();
                                 alertDialog.dismiss();
                             })
@@ -313,10 +312,14 @@ public class NoteActivity extends AppCompatActivity {
                     // Récupérer l'ID de la tâche
                     String taskId = (String) taskView.getTag();  // Récupérer l'ID stocké dans le tag
 
+                    // Récupérer le titre mis à jour depuis l'UI
+                    TextView taskTitleTextView = taskView.findViewById(R.id.taskTitle);
+                    String updatedTitle = taskTitleTextView.getText().toString();
+
                     // Afficher un dialogue de confirmation avant suppression
                     new AlertDialog.Builder(NoteActivity.this)
                             .setTitle("Delete Task Confirmation")
-                            .setMessage("Are you sure you want to delete '" + title + "'?")
+                            .setMessage("Are you sure you want to delete '" + updatedTitle + "'?")
                             .setPositiveButton("Yes", (dialog, which) -> {
                                 // D'abord supprimer la tâche dans Firestore
                                 db.collection("tasks").document(taskId)
@@ -414,27 +417,10 @@ public class NoteActivity extends AppCompatActivity {
         textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
     }
 
-    private void refreshTaskList() {
-        taskContainer.removeAllViews();  // Vider d'abord le conteneur
 
-        db.collection("tasks")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                        TaskModel task = document.toObject(TaskModel.class);
-                        if (task != null) {
-                            View taskView = addTaskToUI(task.getTitle(), task.getStartDate(), task.getEndDate());
-                            taskView.setTag(task.getId());  // Stocker l'ID pour modification/suppression
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error loading tasks", Toast.LENGTH_SHORT).show();
-                });
     }
 
 
 
 
 
-}
