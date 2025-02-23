@@ -7,30 +7,28 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.icu.util.Calendar;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
+import android.widget.LinearLayout;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.drawerlayout.widget.DrawerLayout;
-
-import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.navigation.NavigationView;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import android.widget.PopupMenu;
+
 
 public class NoteActivity extends AppCompatActivity {
 
@@ -39,6 +37,8 @@ public class NoteActivity extends AppCompatActivity {
     private Button buttonAddNote ;
     private TextView textViewTaskStartDate, textViewTaskEndDate;
 
+    private LinearLayout taskContainer;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +46,12 @@ public class NoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_note);
 
         buttonAddNote = findViewById(R.id.button_addNote);
+        taskContainer = findViewById(R.id.taskContainer);
 
         buttonAddNote.setOnClickListener(v -> {
             showAddPrivateTaskDialog();
 
         });
-
 
         // Récupérer la Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -118,7 +118,6 @@ public class NoteActivity extends AppCompatActivity {
     private void showAddPrivateTaskDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_task, null);
 
-        // Initialiser les champs de texte dans le dialogue
         EditText privateTaskTitle = dialogView.findViewById(R.id.editprivateTasktitle);
         textViewTaskStartDate = dialogView.findViewById(R.id.textViewTaskStartDate);
         textViewTaskEndDate = dialogView.findViewById(R.id.textViewTaskEndDate);
@@ -126,28 +125,81 @@ public class NoteActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Private Task")
                 .setView(dialogView)
-                .setPositiveButton("Add", (dialog, which) -> {
-                    String title = privateTaskTitle.getText().toString();
+                .setPositiveButton("Add", null)
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
-                    // Validation des champs
-                    if (title.isEmpty()) {
-                        Toast.makeText(this, "Please enter a Title", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+        AlertDialog alertDialog = builder.create();
 
+        // Afficher le dialogue
+        alertDialog.show();
+        // Gérer l'ajout de la tâche dans le dialog
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            if (validateInput(privateTaskTitle, textViewTaskStartDate, textViewTaskEndDate)) {
+                // Récupérer les valeurs de la tâche
+                String taskTitle = privateTaskTitle.getText().toString().trim();
+                String startDate = textViewTaskStartDate.getText().toString().trim();
+                String endDate = textViewTaskEndDate.getText().toString().trim();
 
-                    Toast.makeText(NoteActivity.this, "Task Added", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .create()
-                .show();
+                // Appeler la méthode pour ajouter la tâche à l'interface
+                addTaskToUI(taskTitle, startDate, endDate);
 
-        // Ajouter des écouteurs pour la date et l'heure
+                // Afficher un message
+                Toast.makeText(this, "Task Added", Toast.LENGTH_SHORT).show();
+
+                // Fermer le dialog
+                alertDialog.dismiss();
+            }
+        });
+
         textViewTaskStartDate.setOnClickListener(v -> showDateTimePicker(textViewTaskStartDate));
         textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
     }
 
-    // Fonction pour afficher le DatePickerDialog et TimePickerDialog
+    // Validation des entrées
+    private boolean validateInput(EditText titleField, TextView startDateField, TextView endDateField) {
+        String title = titleField.getText().toString().trim();
+        String startDateStr = startDateField.getText().toString().trim();
+        String endDateStr = endDateField.getText().toString().trim();
+
+        if (title.isEmpty()) {
+            showToast("Please enter a Title");
+            return false;
+        }
+        if (startDateStr.isEmpty()) {
+            showToast("Please select a Start Date and Time");
+            return false;
+        }
+        if (endDateStr.isEmpty()) {
+            showToast("Please select an End Date and Time");
+            return false;
+        }
+
+        if (!isValidDateRange(startDateStr, endDateStr)) {
+            showToast("End Date must be after Start Date");
+            return false;
+        }
+
+        return true;
+    }
+
+    // Vérification que la date de fin est après la date de début
+    private boolean isValidDateRange(String startDateStr, String endDateStr) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+        try {
+            Date startDate = dateFormat.parse(startDateStr);
+            Date endDate = dateFormat.parse(endDateStr);
+            return startDate != null && endDate != null && startDate.before(endDate);
+        } catch (ParseException e) {
+            showToast("Invalid date format");
+            return false;
+        }
+    }
+
+    // Afficher un toast
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
     // Fonction pour afficher le sélecteur de date et d'heure
     private void showDateTimePicker(TextView textView) {
         final Calendar calendar = Calendar.getInstance();
@@ -177,6 +229,55 @@ public class NoteActivity extends AppCompatActivity {
 
         datePickerDialog.show();
     }
+    // Ajouter une tâche dynamiquement à l'interface
+    private void addTaskToUI(String title, String startDate, String endDate) {
+        View taskView = LayoutInflater.from(this).inflate(R.layout.item_private_task, taskContainer, false);
 
+        // Appliquer l'arrière-plan en fonction du thème actuel
+        if (isNightMode()) {
+            taskView.setBackgroundResource(R.drawable.background_dark);  // Mode sombre
+        } else {
+            taskView.setBackgroundResource(R.drawable.background_light);  // Mode clair
+        }
+
+        TextView taskTitle = taskView.findViewById(R.id.taskTitle);
+        TextView taskDates = taskView.findViewById(R.id.taskDates);
+        Button deleteButton = taskView.findViewById(R.id.deleteButton);
+
+        taskTitle.setText(title);
+        taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
+
+        // Initialiser l'optionMenu dans la méthode addTaskToUI (correctement liée à chaque taskView)
+        ImageView optionMenu = taskView.findViewById(R.id.optionMenu);
+
+        // Gérer le clic sur l'icône des 3 points (menu d'options)
+        optionMenu.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(NoteActivity.this, v);
+            popupMenu.inflate(R.menu.menu_task_options);  // Définir un menu XML pour les options (Modifier, Supprimer)
+
+            popupMenu.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.optionModify) {
+                    // Logique pour modifier la tâche
+                    Toast.makeText(NoteActivity.this, "Modifier tâche", Toast.LENGTH_SHORT).show();
+                } else if (item.getItemId() == R.id.optionDelete) {
+                    // Logique pour supprimer la tâche
+                    taskContainer.removeView(taskView);
+                    Toast.makeText(NoteActivity.this, "Tâche supprimée", Toast.LENGTH_SHORT).show();
+                } else {
+                    return false;
+                }
+                return true;
+            });
+
+            popupMenu.show();
+        });
+
+        taskContainer.addView(taskView, 0);
+    }
+
+    private boolean isNightMode() {
+        SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
+        return sharedPreferences.getBoolean("night_mode", false); // Retourne si le mode nuit est activé
+    }
 
 }

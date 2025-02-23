@@ -11,6 +11,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Title"
+        android:background="@drawable/bg_textview"
+        android:gravity="center"
+        android:layout_marginBottom="10sp"
         android:inputType="text" />
 
     <TextView
@@ -19,10 +22,11 @@
         android:layout_height="wrap_content"
         android:hint="Start Date and Time"
         android:padding="10dp"
-        android:background="@android:drawable/editbox_background"
+        android:background="@drawable/bg_textview"
         android:gravity="center"
         android:textSize="16sp"
         android:textColor="@android:color/black"
+        android:layout_marginBottom="10sp"
         android:clickable="true"
         android:focusable="true"/>
 
@@ -32,10 +36,11 @@
         android:layout_height="wrap_content"
         android:hint="End Date and Time"
         android:padding="10dp"
-        android:background="@android:drawable/editbox_background"
+        android:background="@drawable/bg_textview"
         android:gravity="center"
         android:textSize="16sp"
         android:textColor="@android:color/black"
+        android:layout_marginBottom="10sp"
         android:clickable="true"
         android:focusable="true"/>
 

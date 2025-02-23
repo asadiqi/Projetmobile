@@ -7,10 +7,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="80dp">
+
+        <LinearLayout
+            android:id="@+id/taskContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginTop="70dp"/>
+
+    </ScrollView>
     <FrameLayout
         android:id="@+id/content_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
 
         <!-- Un TextView pour afficher un texte -->
         <TextView
@@ -81,9 +98,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="16dp"
                 android:visibility="gone"/>
-
-
         </LinearLayout>
+
 
 
     </com.google.android.material.navigation.NavigationView>
