@@ -29,6 +29,12 @@ import java.util.Date;
 import java.util.Locale;
 import android.widget.PopupMenu;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+
 
 public class NoteActivity extends AppCompatActivity {
 
@@ -38,6 +44,9 @@ public class NoteActivity extends AppCompatActivity {
     private TextView textViewTaskStartDate, textViewTaskEndDate;
 
     private LinearLayout taskContainer;
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+
 
 
     @Override
@@ -112,6 +121,30 @@ public class NoteActivity extends AppCompatActivity {
 
             AppCompatDelegate.setDefaultNightMode(isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
         });
+
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            String userId = user.getUid();
+            db.collection("tasks")
+                    .whereEqualTo("userId", userId)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                            TaskModel task = doc.toObject(TaskModel.class);
+                            if (task != null) {
+                                View taskView = addTaskToUI(task.getTitle(), task.getStartDate(), task.getEndDate());
+                                taskView.setTag(task.getId()); // Stocker l'ID pour modification/suppression
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(this, "Error loading tasks", Toast.LENGTH_SHORT).show());
+        }
+
+
+
     }
 
     // Déclaration correcte de la méthode showAddPrivateTaskDialog
@@ -139,9 +172,26 @@ public class NoteActivity extends AppCompatActivity {
                 String taskTitle = privateTaskTitle.getText().toString().trim();
                 String startDate = textViewTaskStartDate.getText().toString().trim();
                 String endDate = textViewTaskEndDate.getText().toString().trim();
+                // Vérifie si l'utilisateur est connecté
+                FirebaseUser user = auth.getCurrentUser();
+                if (user != null) {
+                    String userId = user.getUid();
+                    String taskId = db.collection("tasks").document().getId(); // Génère un ID unique
 
-                // Appeler la méthode pour ajouter la tâche à l'interface
-                addTaskToUI(taskTitle, startDate, endDate);
+                    TaskModel task = new TaskModel(taskId, taskTitle, startDate, endDate, userId);
+
+                    db.collection("tasks").document(taskId)
+                            .set(task)
+                            .addOnSuccessListener(aVoid -> {
+                                // Appeler la méthode pour ajouter la tâche à l'interface
+                                addTaskToUI(taskTitle, startDate, endDate);
+                                // Après l'ajout de la tâche, on recharge la liste des tâches depuis Firestore
+                                refreshTaskList();
+                                Toast.makeText(this, "Task Added", Toast.LENGTH_SHORT).show();
+                                alertDialog.dismiss();
+                            })
+                            .addOnFailureListener(e -> Toast.makeText(this, "Error saving task", Toast.LENGTH_SHORT).show());
+                }
 
                 // Afficher un message
                 Toast.makeText(this, "Task Added", Toast.LENGTH_SHORT).show();
@@ -230,7 +280,7 @@ public class NoteActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
     // Ajouter une tâche dynamiquement à l'interface
-    private void addTaskToUI(String title, String startDate, String endDate) {
+    private View  addTaskToUI(String title, String startDate, String endDate) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_private_task, taskContainer, false);
 
         // Appliquer l'arrière-plan en fonction du thème actuel
@@ -242,13 +292,12 @@ public class NoteActivity extends AppCompatActivity {
 
         TextView taskTitle = taskView.findViewById(R.id.taskTitle);
         TextView taskDates = taskView.findViewById(R.id.taskDates);
-        Button deleteButton = taskView.findViewById(R.id.deleteButton);
+        // Initialiser l'optionMenu dans la méthode addTaskToUI (correctement liée à chaque taskView)
+        ImageView optionMenu = taskView.findViewById(R.id.optionMenu);
 
         taskTitle.setText(title);
         taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
 
-        // Initialiser l'optionMenu dans la méthode addTaskToUI (correctement liée à chaque taskView)
-        ImageView optionMenu = taskView.findViewById(R.id.optionMenu);
 
         // Gérer le clic sur l'icône des 3 points (menu d'options)
         optionMenu.setOnClickListener(v -> {
@@ -258,11 +307,32 @@ public class NoteActivity extends AppCompatActivity {
             popupMenu.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == R.id.optionModify) {
                     // Logique pour modifier la tâche
-                    Toast.makeText(NoteActivity.this, "Modifier tâche", Toast.LENGTH_SHORT).show();
+                    showEditTaskDialog(taskView, taskTitle.getText().toString(), taskDates.getText().toString());
                 } else if (item.getItemId() == R.id.optionDelete) {
-                    // Logique pour supprimer la tâche
-                    taskContainer.removeView(taskView);
-                    Toast.makeText(NoteActivity.this, "Tâche supprimée", Toast.LENGTH_SHORT).show();
+
+                    // Récupérer l'ID de la tâche
+                    String taskId = (String) taskView.getTag();  // Récupérer l'ID stocké dans le tag
+
+                    // Afficher un dialogue de confirmation avant suppression
+                    new AlertDialog.Builder(NoteActivity.this)
+                            .setTitle("Delete Task Confirmation")
+                            .setMessage("Are you sure you want to delete '" + title + "'?")
+                            .setPositiveButton("Yes", (dialog, which) -> {
+                                // D'abord supprimer la tâche dans Firestore
+                                db.collection("tasks").document(taskId)
+                                        .delete()
+                                        .addOnSuccessListener(aVoid -> {
+                                            // Après la suppression réussie de Firestore, on retire la vue de l'UI
+                                            taskContainer.removeView(taskView);
+                                            Toast.makeText(NoteActivity.this, "Task Deleted", Toast.LENGTH_SHORT).show();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            // Si l'erreur survient dans la suppression Firestore
+                                            Toast.makeText(NoteActivity.this, "Error deleting task", Toast.LENGTH_SHORT).show();
+                                        });
+                            })
+                            .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                            .show();
                 } else {
                     return false;
                 }
@@ -273,11 +343,98 @@ public class NoteActivity extends AppCompatActivity {
         });
 
         taskContainer.addView(taskView, 0);
+
+        return taskView;
+
     }
 
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false); // Retourne si le mode nuit est activé
     }
+    private void showEditTaskDialog(View taskView, String currentTitle, String currentDates) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_task, null);
+
+        EditText editTaskTitle = dialogView.findViewById(R.id.editprivateTasktitle);
+        TextView textViewTaskStartDate = dialogView.findViewById(R.id.textViewTaskStartDate);
+        TextView textViewTaskEndDate = dialogView.findViewById(R.id.textViewTaskEndDate);
+
+        // Extraire les dates actuelles
+        String[] dateParts = currentDates.split("\n");
+        String startDate = dateParts.length > 0 ? dateParts[0].replace("Start: ", "").trim() : "";
+        String endDate = dateParts.length > 1 ? dateParts[1].replace("End: ", "").trim() : "";
+
+        // Pré-remplir les champs
+        editTaskTitle.setText(currentTitle);
+        textViewTaskStartDate.setText(startDate);
+        textViewTaskEndDate.setText(endDate);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Modify Task")
+                .setView(dialogView)
+                .setPositiveButton("Save", null) // Laisse null pour qu'on puisse gérer le clic après
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
+        // Gérer la modification
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            if (validateInput(editTaskTitle, textViewTaskStartDate, textViewTaskEndDate)) {
+                // Mettre à jour l'UI avec les nouvelles valeurs
+                String newTitle = editTaskTitle.getText().toString().trim();
+                String newStartDate = textViewTaskStartDate.getText().toString().trim();
+                String newEndDate = textViewTaskEndDate.getText().toString().trim();
+
+                String taskId = (String) taskView.getTag(); // Récupérer l'ID stocké
+
+                db.collection("tasks").document(taskId)
+                        .update("title", newTitle, "startDate", newStartDate, "endDate", newEndDate)
+                        .addOnSuccessListener(aVoid -> {
+                            ((TextView) taskView.findViewById(R.id.taskTitle)).setText(newTitle);
+                            ((TextView) taskView.findViewById(R.id.taskDates)).setText("Start: " + newStartDate + "\nEnd: " + newEndDate);
+                            Toast.makeText(this, "Task Updated", Toast.LENGTH_SHORT).show();
+                            alertDialog.dismiss();
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(this, "Error updating task", Toast.LENGTH_SHORT).show());
+
+                TextView taskTitle = taskView.findViewById(R.id.taskTitle);
+                TextView taskDates = taskView.findViewById(R.id.taskDates);
+
+                taskTitle.setText(newTitle);
+                taskDates.setText("Start: " + newStartDate + "\nEnd: " + newEndDate);
+
+                Toast.makeText(this, "Task Updated", Toast.LENGTH_SHORT).show();
+                alertDialog.dismiss();
+            }
+        });
+
+        // Ajouter les listeners pour les dates
+        textViewTaskStartDate.setOnClickListener(v -> showDateTimePicker(textViewTaskStartDate));
+        textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
+    }
+
+    private void refreshTaskList() {
+        taskContainer.removeAllViews();  // Vider d'abord le conteneur
+
+        db.collection("tasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        TaskModel task = document.toObject(TaskModel.class);
+                        if (task != null) {
+                            View taskView = addTaskToUI(task.getTitle(), task.getStartDate(), task.getEndDate());
+                            taskView.setTag(task.getId());  // Stocker l'ID pour modification/suppression
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error loading tasks", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+
+
 
 }

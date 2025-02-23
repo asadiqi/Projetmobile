@@ -31,19 +31,14 @@
             android:maxLines="2"
             android:ellipsize="end"/>
 
-        <Button
-            android:id="@+id/deleteButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Delete"
-            android:layout_marginTop="8dp"/>
+
     </LinearLayout>
 
     <!-- ImageView aligné en haut à droite -->
     <ImageView
         android:id="@+id/optionMenu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:src="@drawable/more"
         android:contentDescription="Menu options"
         android:layout_marginTop="10dp"

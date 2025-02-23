@@ -29,16 +29,6 @@
         android:layout_height="match_parent">
 
 
-        <!-- Un TextView pour afficher un texte -->
-        <TextView
-            android:id="@+id/welcomeText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Bienvenue sur mon application"
-            android:textSize="24sp"
-            android:layout_gravity="center"
-            android:textColor="@android:color/black"/>
-
         <!-- Un Button à une position spécifique -->
         <Button
             android:id="@+id/button_addNote"

@@ -10,7 +10,7 @@
         android:id="@+id/editprivateTasktitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Title"
+        android:hint="Add task"
         android:background="@drawable/bg_textview"
         android:gravity="center"
         android:layout_marginBottom="10sp"
