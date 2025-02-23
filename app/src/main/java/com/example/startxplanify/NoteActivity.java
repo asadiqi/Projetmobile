@@ -194,22 +194,35 @@ public class NoteActivity extends AppCompatActivity {
         return isValidDateRange(startDateStr, endDateStr);
     }
 
+    // Méthode modifiée de validation de la plage de dates
     private boolean isValidDateRange(String startDateStr, String endDateStr) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
         try {
             Date startDate = dateFormat.parse(startDateStr);
             Date endDate = dateFormat.parse(endDateStr);
-            return startDate != null && endDate != null && startDate.before(endDate);
+
+            // Vérification si la date de début est avant la date de fin
+            if (startDate != null && endDate != null) {
+                if (startDate.after(endDate)) {
+                    showToast("Start Date cannot be after End Date");
+                    return false;  // Si la date de début est après la date de fin, retournera false
+                }
+                return true;
+            } else {
+                showToast("Invalid date format");
+                return false;
+            }
         } catch (ParseException e) {
             showToast("Invalid date format");
             return false;
         }
     }
 
+
+
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
-
     private void showDateTimePicker(TextView textView) {
         final Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePickerDialog = new DatePickerDialog(this,
@@ -380,14 +393,15 @@ public class NoteActivity extends AppCompatActivity {
         textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
     }
 
+    // Ajouter le message de confirmation personnalisé pour la suppression de tâche
     private void confirmAndDeleteTask(View taskView) {
         String taskId = (String) taskView.getTag();  // Récupérer l'ID stocké dans le tag
         TextView taskTitleTextView = taskView.findViewById(R.id.taskTitle);
         String taskTitle = taskTitleTextView.getText().toString();
 
         new AlertDialog.Builder(NoteActivity.this)
-                .setTitle("Delete Task Confirmation")
-                .setMessage("Are you sure you want to delete '" + taskTitle + "'?")
+                .setTitle("Confirm Task Deletion")
+                .setMessage("Are you sure you want to delete the task: '" + taskTitle + "'? This action cannot be undone.")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     // Supprimer la tâche de Firestore
                     db.collection("tasks").document(taskId)
@@ -404,7 +418,6 @@ public class NoteActivity extends AppCompatActivity {
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
     }
-
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
