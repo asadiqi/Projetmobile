@@ -1,44 +1,52 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/bg_textview"
     android:padding="10dp"
     android:layout_marginBottom="10dp">
 
-    <TextView
-        android:id="@+id/taskTitle"
+    <!-- Conteneur LinearLayout pour les autres éléments -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Task Title"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:maxLines="1"
-        android:ellipsize="end"/>
+        android:orientation="vertical"
+        android:background="@drawable/bg_textview"
+        android:padding="10dp">
 
-    <TextView
-        android:id="@+id/taskDates"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Start: \nEnd: "
-        android:textSize="14sp"
-        android:maxLines="2"
-        android:ellipsize="end"/>
+        <TextView
+            android:id="@+id/taskTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Task Title"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"/>
 
-    <Button
-        android:id="@+id/deleteButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Delete"
-        android:layout_marginTop="8dp"/>
+        <TextView
+            android:id="@+id/taskDates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start: \nEnd: "
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end"/>
 
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <!-- ImageView aligné en haut à droite -->
     <ImageView
         android:id="@+id/optionMenu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_more"
+        android:src="@drawable/more"
         android:contentDescription="Menu options"
-        android:layout_marginTop="10dp"/>
+        android:layout_marginTop="10dp"
+        android:layout_gravity="top|end" /> <!-- Gravity top|end pour aligner en haut à droite -->
 
-
-</LinearLayout>
+</FrameLayout>
