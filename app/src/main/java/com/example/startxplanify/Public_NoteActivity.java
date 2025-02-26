@@ -314,22 +314,7 @@ public class Public_NoteActivity extends AppCompatActivity {
                     showEditTaskDialog(taskView, currentTitle, currentDates, currentLocation);
                 } else if (item.getItemId() == R.id.optionDelete) {
                     // Suppression avec confirmation
-                    String taskId = (String) taskView.getTag();
-
-                    new AlertDialog.Builder(Public_NoteActivity.this)
-                            .setTitle("Delete Task Confirmation")
-                            .setMessage("Are you sure you want to delete this task?")
-                            .setPositiveButton("Yes", (dialog, which) -> {
-                                db.collection("public_tasks").document(taskId)
-                                        .delete()
-                                        .addOnSuccessListener(aVoid -> {
-                                            taskContainer.removeView(taskView);
-                                            Toast.makeText(Public_NoteActivity.this, "Public Task Deleted", Toast.LENGTH_SHORT).show();
-                                        })
-                                        .addOnFailureListener(e -> Toast.makeText(Public_NoteActivity.this, "Error deleting task: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                            })
-                            .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                            .show();
+                 confirmAndDeleteTask(taskView);
                 } else {
                     return false;
                 }
@@ -416,13 +401,13 @@ public class Public_NoteActivity extends AppCompatActivity {
 
     // Ajouter le message de confirmation personnalisé pour la suppression de tâche
     private void confirmAndDeleteTask(View taskView) {
-        String taskId = (String) taskView.getTag();  // Récupérer l'ID stocké dans le tag
-        TextView taskTitleTextView = taskView.findViewById(R.id.taskTitle);
-        String taskTitle = taskTitleTextView.getText().toString();
+        // Récupérer l'ID de la tâche à partir du tag de la vue
+        String taskId = (String) taskView.getTag();
 
+        // Afficher une boîte de dialogue de confirmation
         new AlertDialog.Builder(Public_NoteActivity.this)
-                .setTitle("Confirm Task Deletion")
-                .setMessage("Are you sure you want to delete the task: '" + taskTitle + "'? This action cannot be undone.")
+                .setTitle("Delete Task Confirmation")
+                .setMessage("Are you sure you want to delete this task?")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     // Supprimer la tâche de Firestore
                     db.collection("public_tasks").document(taskId)
@@ -430,15 +415,17 @@ public class Public_NoteActivity extends AppCompatActivity {
                             .addOnSuccessListener(aVoid -> {
                                 // Supprimer la tâche de l'interface utilisateur
                                 taskContainer.removeView(taskView);
-                                Toast.makeText(Public_NoteActivity.this, "Task Deleted", Toast.LENGTH_SHORT).show();
+                                showToast("Public Task Deleted");
                             })
                             .addOnFailureListener(e -> {
-                                Toast.makeText(Public_NoteActivity.this, "Error deleting task", Toast.LENGTH_SHORT).show();
+                                // Afficher un message d'erreur en cas de problème avec la suppression
+                                showToast("Error deleting task: " + e.getMessage());
                             });
                 })
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss()) // Fermer la boîte de dialogue sans suppression
                 .show();
     }
+
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);

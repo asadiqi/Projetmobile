@@ -277,23 +277,7 @@ public class Private_NoteActivity extends AppCompatActivity {
                     showEditTaskDialog(taskView, currentTitle, currentDates);  // Passe maintenant les 3 arguments nécessaires
                 } else if (item.getItemId() == R.id.optionDelete) {
                     // Récupérer l'ID de la tâche
-                    String taskId = (String) taskView.getTag();  // Récupérer l'ID stocké dans le tag
-
-                    // Afficher un dialogue de confirmation avant suppression
-                    new AlertDialog.Builder(Private_NoteActivity.this)
-                            .setTitle("Delete Task Confirmation")
-                            .setMessage("Are you sure you want to delete this task?")
-                            .setPositiveButton("Yes", (dialog, which) -> {
-                                db.collection("private_tasks").document(taskId)
-                                        .delete()
-                                        .addOnSuccessListener(aVoid -> {
-                                            taskContainer.removeView(taskView);  // Supprimer la tâche de l'interface utilisateur
-                                            Toast.makeText(Private_NoteActivity.this, "Task Deleted", Toast.LENGTH_SHORT).show();
-                                        })
-                                        .addOnFailureListener(e -> Toast.makeText(Private_NoteActivity.this, "Error deleting task", Toast.LENGTH_SHORT).show());
-                            })
-                            .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                            .show();
+                    confirmAndDeleteTask(taskView);
                 } else {
                     return false;
                 }
@@ -306,7 +290,6 @@ public class Private_NoteActivity extends AppCompatActivity {
         taskContainer.addView(taskView, 0);
         return taskView;
     }
-
 
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates) {
         // Créer une vue pour le dialogue d'édition
