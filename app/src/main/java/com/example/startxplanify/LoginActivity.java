@@ -18,7 +18,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -104,7 +103,7 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.apply();
 
                                 // Rediriger vers NoteActivity
-                                startActivity(new Intent(LoginActivity.this , NoteActivity.class));
+                                startActivity(new Intent(LoginActivity.this , Private_NoteActivity.class));
                                 finish();
 
                         } else {
