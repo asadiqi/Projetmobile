@@ -15,6 +15,8 @@
     <string name="Enterpass">Password</string>
     <string name="dont_have_account">Don\'t have an account? Click here</string>
     <string name="forgotPass">Forgot Password ?</string>
+    <string name="Goggle_Api_key">AIzaSyDtU7OgdCPge5lmwtN0_3d4zcVyjQt2Uh8</string>
+
 
     <string name="login_button">Log-in</string>
     <string name="signup_button">Sign-up</string>
