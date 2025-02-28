@@ -152,6 +152,17 @@ public class Public_NoteActivity extends AppCompatActivity {
         textViewPublicTaskEndDate = dialogView.findViewById(R.id.textViewPublicTaskEndDate);
         AutoCompleteTextView taskLocation = dialogView.findViewById(R.id.autoCompleteTaskLocation);
 
+        // Redirection vers la carte au focus
+        taskLocation.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                Intent intent = new Intent(Public_NoteActivity.this, Map.class);
+                startActivity(intent);
+                taskLocation.clearFocus(); // Pour éviter que l'événement se répète après le retour
+            }
+        });
+
+
+
         // Création du dialogue
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Public Task") // Correction du titre
@@ -179,6 +190,7 @@ public class Public_NoteActivity extends AppCompatActivity {
         textViewPublicTaskStartDate.setOnClickListener(v -> showDateTimePicker(textViewPublicTaskStartDate));
         textViewPublicTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewPublicTaskEndDate));
     }
+
 
 
     private void createPublicTask(String title, String startDate, String endDate, String location) {
