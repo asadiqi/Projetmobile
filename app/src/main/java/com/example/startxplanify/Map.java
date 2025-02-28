@@ -1,5 +1,6 @@
 package com.example.startxplanify;
 
+import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -29,14 +30,6 @@ import java.util.List;
 import android.Manifest;
 import android.content.pm.PackageManager;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 
 public class Map extends AppCompatActivity implements OnMapReadyCallback {
@@ -44,14 +37,11 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
     private GoogleMap map;
     private AutoCompleteTextView addressInput;
 
-    private Button searchButton, locationButton;
+    private Button searchButton, locationButton,Okbutton;
 
     private TextView addressTextView;
     private FusedLocationProviderClient fusedLocationClient;
     private LatLng currentLocation;
-    private LatLng selectedLocation; // Pour stocker la position de l'adresse sélectionnée
-
-    private ImageView addressImageView;  // ImageView pour afficher l'image de l'adresse
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +53,7 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
         searchButton = findViewById(R.id.searchButton);
         addressTextView = findViewById(R.id.addressTextView);
         locationButton = findViewById(R.id.locationButton); // Bouton pour revenir à la localisation actuelle
-        addressImageView = findViewById(R.id.addressImageView);  // ImageView pour la photo
-
+        Okbutton = findViewById(R.id.buttonOK);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Configurer la carte
@@ -104,7 +93,27 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
                 Toast.makeText(Map.this, "Impossible de récupérer la localisation actuelle", Toast.LENGTH_SHORT).show();
             }
         });
+
+        Okbutton.setOnClickListener(v -> {
+            // Récupérer l'adresse saisie dans l'AutoCompleteTextView
+            String address = addressInput.getText().toString();
+
+            // Vérifiez que l'adresse n'est pas vide avant de l'envoyer
+            if (!address.isEmpty()) {
+                // Créer un Intent pour renvoyer l'adresse à Public_NoteActivity
+                Intent intent = new Intent();
+                intent.putExtra("selectedLocation", address);  // Passer l'adresse sélectionnée à Public_NoteActivity
+
+                // Définir le résultat et revenir à l'activité appelante
+                setResult(RESULT_OK, intent);
+
+                finish();  // Fermer l'activité Map et revenir à Public_NoteActivity
+            } else {
+                Toast.makeText(Map.this, "Veuillez sélectionner ou entrer une adresse", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -156,7 +165,7 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
                 // Afficher l'adresse dans le TextView
                 addressTextView.setText(address);
 
-l
+
             } else {
                 Toast.makeText(this, "Adresse non trouvée", Toast.LENGTH_SHORT).show();
             }

@@ -54,17 +54,17 @@
         android:layout_height="0dp"
         android:layout_below="@id/addressTextView"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="-13dp"
-        android:layout_marginBottom="22dp" />
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="1dp" />
 
     <Button
         android:id="@+id/locationButton"
-        android:layout_width="wrap_content"
+        android:layout_width="104dp"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/map"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginStart="301dp"
+        android:layout_marginStart="285dp"
         android:layout_marginEnd="22dp"
         android:layout_marginBottom="63dp"
         android:text="Recenter" />
@@ -76,6 +76,16 @@
         android:layout_height="500dp"
         android:layout_marginTop="16dp"
         android:scaleType="centerCrop" />
+
+    <Button
+        android:id="@+id/buttonOK"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="61dp"
+        android:text="OK" />
 
 
 </RelativeLayout>

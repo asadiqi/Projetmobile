@@ -47,6 +47,9 @@ public class Public_NoteActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
+    private AlertDialog alertDialog;
+
+
 
 
     @Override
@@ -155,8 +158,9 @@ public class Public_NoteActivity extends AppCompatActivity {
         // Redirection vers la carte au focus
         taskLocation.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
+                // Lancer l'activité Map et attendre un résultat
                 Intent intent = new Intent(Public_NoteActivity.this, Map.class);
-                startActivity(intent);
+                startActivityForResult(intent, 1);  // Demander un résultat en retournant 1 comme code de demande
                 taskLocation.clearFocus(); // Pour éviter que l'événement se répète après le retour
             }
         });
@@ -189,6 +193,22 @@ public class Public_NoteActivity extends AppCompatActivity {
         // Gestion des sélecteurs de date
         textViewPublicTaskStartDate.setOnClickListener(v -> showDateTimePicker(textViewPublicTaskStartDate));
         textViewPublicTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewPublicTaskEndDate));
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            // Récupérer l'emplacement sélectionné
+            String selectedLocation = data.getStringExtra("selectedLocation");
+
+            if (selectedLocation != null && alertDialog != null && alertDialog.isShowing()) {
+                // Mettre à jour le champ AutoCompleteTextView dans le dialogue avec l'adresse
+                AutoCompleteTextView taskLocation = alertDialog.findViewById(R.id.autoCompleteTaskLocation);
+                taskLocation.setText(selectedLocation);
+            }
+        }
     }
 
 
