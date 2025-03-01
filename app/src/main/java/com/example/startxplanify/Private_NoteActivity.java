@@ -83,7 +83,9 @@ public class Private_NoteActivity extends AppCompatActivity {
 
     private void handleNavigationItemClick(int itemId) {
         if (itemId == R.id.nav_home) {
-
+            Intent intent = new Intent(Private_NoteActivity.this, ok.class);
+            startActivity(intent);
+            finish();
             showToast("Home sélectionné");
         } else if (itemId == R.id.nav_settings) {
             showToast("Settings sélectionné");

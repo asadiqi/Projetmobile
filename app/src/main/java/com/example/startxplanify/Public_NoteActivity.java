@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.icu.util.Calendar;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -34,14 +34,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class Public_NoteActivity extends AppCompatActivity {
+public class Public_NoteActivity extends AppCompatActivity implements AddressUpdateListener {
+
 
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private Button buttonAddNote;
     private TextView textViewPublicTaskStartDate, textViewPublicTaskEndDate;
-
-    private AutoCompleteTextView location;
+    private TextView locationTextView; // Déclarez le TextView pour l'adresse complète
 
     private LinearLayout taskContainer;
     private FirebaseFirestore db;
@@ -71,6 +71,9 @@ public class Public_NoteActivity extends AppCompatActivity {
         buttonAddNote.setOnClickListener(v -> showAddPublicTaskDialog());
 
         loadUserTasks(); // Chargement des tâches à chaque redémarrage de l'activité
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
+        locationTextView =dialogView.findViewById(R.id.location); // Récupérer le TextView pour l'adresse
 
     }
 
@@ -144,7 +147,6 @@ public class Public_NoteActivity extends AppCompatActivity {
         }
     }
 
-
     private void showAddPublicTaskDialog() {
         // Chargement du layout du dialogue
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
@@ -153,19 +155,13 @@ public class Public_NoteActivity extends AppCompatActivity {
         EditText publicTaskTitle = dialogView.findViewById(R.id.editpublicTasktitle);
         textViewPublicTaskStartDate = dialogView.findViewById(R.id.textViewPublicTaskStartDate);
         textViewPublicTaskEndDate = dialogView.findViewById(R.id.textViewPublicTaskEndDate);
-        AutoCompleteTextView taskLocation = dialogView.findViewById(R.id.autoCompleteTaskLocation);
-
+        locationTextView = dialogView.findViewById(R.id.location); // Récupérer le TextView pour l'adresse
+        TextView map = dialogView.findViewById(R.id.locationTextView);
         // Redirection vers la carte au focus
-        taskLocation.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                // Lancer l'activité Map et attendre un résultat
-                Intent intent = new Intent(Public_NoteActivity.this, Map.class);
-                startActivityForResult(intent, 1);  // Demander un résultat en retournant 1 comme code de demande
-                taskLocation.clearFocus(); // Pour éviter que l'événement se répète après le retour
-            }
+        map.setOnClickListener(v -> {
+            Intent intent = new Intent(Public_NoteActivity.this, Map.class);
+            startActivityForResult(intent, 1);
         });
-
-
 
         // Création du dialogue
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -182,9 +178,9 @@ public class Public_NoteActivity extends AppCompatActivity {
             String title = publicTaskTitle.getText().toString().trim();
             String startDate = textViewPublicTaskStartDate.getText().toString().trim();
             String endDate = textViewPublicTaskEndDate.getText().toString().trim();
-            String location = taskLocation.getText().toString().trim();
+            String location = locationTextView.getText().toString().trim();
 
-            if (validateInput(publicTaskTitle, textViewPublicTaskStartDate, textViewPublicTaskEndDate, taskLocation)) {
+            if (validateInput(publicTaskTitle, textViewPublicTaskStartDate, textViewPublicTaskEndDate, locationTextView)) {
                 createPublicTask(title, startDate, endDate, location); // Passer tous les paramètres à la méthode
                 alertDialog.dismiss();
             }
@@ -198,20 +194,62 @@ public class Public_NoteActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == 1 && resultCode == RESULT_OK) {
-            // Récupérer l'emplacement sélectionné
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
             String selectedLocation = data.getStringExtra("selectedLocation");
 
-            if (selectedLocation != null && alertDialog != null && alertDialog.isShowing()) {
-                // Mettre à jour le champ AutoCompleteTextView dans le dialogue avec l'adresse
-                AutoCompleteTextView taskLocation = alertDialog.findViewById(R.id.autoCompleteTaskLocation);
-                taskLocation.setText(selectedLocation);
+            if (selectedLocation != null && !selectedLocation.isEmpty()) {
+                Log.d("PublicNote", "Adresse reçue: " + selectedLocation);
+
+                // Vérifier si le dialogue est ouvert
+                if (alertDialog != null && alertDialog.isShowing()) {
+                    TextView location = alertDialog.findViewById(R.id.location);
+                    if (location != null) {
+                        location.setText(selectedLocation);
+                    }
+                }
+
+                showAlertDialog(selectedLocation);
+
+            } else {
+                showToast("Adresse non reçue !");
             }
+        } else if (requestCode == 2 && resultCode == RESULT_OK && data != null) {  // Code 2 pour la modification
+            String selectedLocation = data.getStringExtra("selectedLocation");
+
+            if (selectedLocation != null && !selectedLocation.isEmpty()) {
+                Log.d("PublicNote", "Adresse modifiée reçue: " + selectedLocation);
+
+                // Mettre à jour l'adresse dans le champ d'adresse du dialogue de modification
+                if (alertDialog != null && alertDialog.isShowing()) {
+                    TextView location = alertDialog.findViewById(R.id.location);
+                    if (location != null) {
+                        location.setText(selectedLocation);
+                    }
+                }
+
+                showAlertDialog(selectedLocation);
+            } else {
+                showToast("Adresse non reçue !");
+            }
+        } else {
+            showToast("Erreur lors de la récupération de l'adresse !");
         }
     }
 
 
+
+    public void showAlertDialog(String selectedLocation) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Adresse : " + selectedLocation)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    // Ici, vous appelez le callback pour mettre à jour l'adresse dans showAddPublicTaskDialog
+                    onAddressUpdated(selectedLocation);
+                    dialog.dismiss();
+                });
+
+        alertDialog = builder.create();
+        alertDialog.show();
+    }
 
     private void createPublicTask(String title, String startDate, String endDate, String location) {
         FirebaseUser user = auth.getCurrentUser();
@@ -237,7 +275,7 @@ public class Public_NoteActivity extends AppCompatActivity {
     }
 
 
-    private boolean validateInput(EditText titleField, TextView startDateField, TextView endDateField,AutoCompleteTextView locationField) {
+    private boolean validateInput(EditText titleField, TextView startDateField, TextView endDateField, TextView locationField) {
         String title = titleField.getText().toString().trim();
         String startDateStr = startDateField.getText().toString().trim();
         String endDateStr = endDateField.getText().toString().trim();
@@ -256,10 +294,8 @@ public class Public_NoteActivity extends AppCompatActivity {
             return false;
         }
 
-        if (location.isEmpty()) {
-            showToast("Please enter a Location");
-            return false;
-        }
+
+
 
         return isValidDateRange(startDateStr, endDateStr);
     }
@@ -369,13 +405,20 @@ public class Public_NoteActivity extends AppCompatActivity {
         EditText editTaskTitle = dialogView.findViewById(R.id.editpublicTasktitle);
         TextView editStartDate = dialogView.findViewById(R.id.textViewPublicTaskStartDate);
         TextView editEndDate = dialogView.findViewById(R.id.textViewPublicTaskEndDate);
-        AutoCompleteTextView editTaskLocation = dialogView.findViewById(R.id.autoCompleteTaskLocation);
+        TextView editTaskLocation = dialogView.findViewById(R.id.location);
+        TextView map = dialogView.findViewById(R.id.locationTextView);
 
         // Remplir les champs avec les valeurs actuelles
         editTaskTitle.setText(currentTitle);
         editStartDate.setText(currentDates.split("\n")[0].replace("Start: ", ""));
         editEndDate.setText(currentDates.split("\n")[1].replace("End: ", ""));
         editTaskLocation.setText(currentLocation);
+
+        // Redirection vers la carte pour modifier l'adresse
+        map.setOnClickListener(v -> {
+            Intent intent = new Intent(Public_NoteActivity.this, Map.class);
+            startActivityForResult(intent, 2);  // Utiliser un autre code de demande (2 pour la modification)
+        });
 
         // Créer le dialogue
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -430,7 +473,6 @@ public class Public_NoteActivity extends AppCompatActivity {
     }
 
 
-
     // Ajouter le message de confirmation personnalisé pour la suppression de tâche
     private void confirmAndDeleteTask(View taskView) {
         // Récupérer l'ID de la tâche à partir du tag de la vue
@@ -474,4 +516,15 @@ public class Public_NoteActivity extends AppCompatActivity {
         finish();
         showToast("You are logged out");
     }
+
+
+    @Override
+    public void onAddressUpdated(String address) {
+        locationTextView.setText(address);
+
+    }
+
+
+
+
 }

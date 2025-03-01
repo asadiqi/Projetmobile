@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +36,8 @@ import android.content.pm.PackageManager;
 
 public class Map extends AppCompatActivity implements OnMapReadyCallback {
 
+    private TextView locationTextView;
+
     private GoogleMap map;
     private AutoCompleteTextView addressInput;
 
@@ -55,6 +59,8 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
         locationButton = findViewById(R.id.locationButton); // Bouton pour revenir à la localisation actuelle
         Okbutton = findViewById(R.id.buttonOK);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+
 
         // Configurer la carte
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -94,24 +100,7 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
             }
         });
 
-        Okbutton.setOnClickListener(v -> {
-            // Récupérer l'adresse saisie dans l'AutoCompleteTextView
-            String address = addressInput.getText().toString();
 
-            // Vérifiez que l'adresse n'est pas vide avant de l'envoyer
-            if (!address.isEmpty()) {
-                // Créer un Intent pour renvoyer l'adresse à Public_NoteActivity
-                Intent intent = new Intent();
-                intent.putExtra("selectedLocation", address);  // Passer l'adresse sélectionnée à Public_NoteActivity
-
-                // Définir le résultat et revenir à l'activité appelante
-                setResult(RESULT_OK, intent);
-
-                finish();  // Fermer l'activité Map et revenir à Public_NoteActivity
-            } else {
-                Toast.makeText(Map.this, "Veuillez sélectionner ou entrer une adresse", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
 
@@ -151,21 +140,31 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
     private void geocodeAddress(String address) {
         Geocoder geocoder = new Geocoder(this);
         try {
-            // Obtenir la liste des adresses
+            // Geocoding de l'adresse
             List<Address> addresses = geocoder.getFromLocationName(address, 1); // Limiter à 1 résultat
             if (addresses != null && !addresses.isEmpty()) {
-                Address location = addresses.get(0); // Prendre la première adresse trouvée
+                Address location = addresses.get(0); // On prend le premier résultat trouvé
+
+                // Afficher l'adresse complète dans le TextView
+                String fullAddress = location.getAddressLine(0);  // Cela récupère l'adresse complète sous forme de texte
+                addressTextView.setText(fullAddress);  // Affiche l'adresse dans TextView
+
+                // Optionnel : Si tu veux afficher l'adresse sur la carte sans latitude/longitude
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                map.clear(); // Nettoie les anciens marqueurs
+                map.addMarker(new MarkerOptions().position(latLng).title(fullAddress));  // Affiche le marqueur
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12)); // Déplace la caméra vers la position
 
-                // Ajouter un marqueur à l'adresse trouvée
-                map.clear(); // Nettoyer les anciens marqueurs
-                map.addMarker(new MarkerOptions().position(latLng).title(address));
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
+                // Passer l'adresse complète à l'activité précédente (ok)
+                Okbutton.setOnClickListener(v -> {
+                    // Créer un Intent pour renvoyer l'adresse complète à ok
+                    Intent intent = new Intent();
+                    intent.putExtra("selectedLocation", fullAddress);  // Passer l'adresse complète à ok
 
-                // Afficher l'adresse dans le TextView
-                addressTextView.setText(address);
-
-
+                    // Définir le résultat et revenir à l'activité appelante (ok)
+                    setResult(RESULT_OK, intent);
+                    finish();  // Fermer l'activité Map et revenir à ok
+                });
             } else {
                 Toast.makeText(this, "Adresse non trouvée", Toast.LENGTH_SHORT).show();
             }
@@ -174,6 +173,7 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
             Toast.makeText(this, "Erreur lors de la géocodification", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
 }
