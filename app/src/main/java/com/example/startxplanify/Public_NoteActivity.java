@@ -293,6 +293,11 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
             showToast("Please select an End Date and Time");
             return false;
         }
+        if (location.isEmpty()) {
+            showToast("Please select an adress for this task");
+            return false;
+        }
+
 
 
 

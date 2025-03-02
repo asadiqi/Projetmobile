@@ -49,6 +49,9 @@ dependencies {
     implementation ("com.squareup.picasso:picasso:2.71828")
     implementation ("com.squareup.okhttp3:okhttp:4.9.1")
     implementation ("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation ("com.google.android.gms:play-services-maps:18.0.2")
+    implementation ("com.google.maps:google-maps-services:0.18.0")
+
 
 
 }
