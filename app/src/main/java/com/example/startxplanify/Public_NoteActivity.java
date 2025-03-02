@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -56,6 +57,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
+
 
         // Initialisation des vues
         buttonAddNote = findViewById(R.id.button_addNote);
@@ -105,6 +107,9 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
     }
 
 
+
+
+
     private void setupNightModePreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         boolean isNightMode = sharedPreferences.getBoolean("night_mode", false);
@@ -137,7 +142,8 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                                         public_task.getTitle(),
                                         public_task.getStartDate(),
                                         public_task.getEndDate(),
-                                        public_task.getLocation()
+                                        public_task.getLocation(),
+                                        public_task.getDescription()
                                 );
                                 taskView.setTag(public_task.getId());
                             }
@@ -147,12 +153,15 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         }
     }
 
+
+
     private void showAddPublicTaskDialog() {
         // Chargement du layout du dialogue
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
 
         // Récupération des éléments du formulaire
         EditText publicTaskTitle = dialogView.findViewById(R.id.editpublicTasktitle);
+        EditText publicTaskDescription = dialogView.findViewById(R.id.editPublicTaskDescription);
         textViewPublicTaskStartDate = dialogView.findViewById(R.id.textViewPublicTaskStartDate);
         textViewPublicTaskEndDate = dialogView.findViewById(R.id.textViewPublicTaskEndDate);
         locationTextView = dialogView.findViewById(R.id.location); // Récupérer le TextView pour l'adresse
@@ -176,12 +185,13 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         // Gestion du bouton "Add" pour éviter la fermeture du dialogue en cas de validation incorrecte
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String title = publicTaskTitle.getText().toString().trim();
+            String description = publicTaskDescription.getText().toString().trim();
             String startDate = textViewPublicTaskStartDate.getText().toString().trim();
             String endDate = textViewPublicTaskEndDate.getText().toString().trim();
             String location = locationTextView.getText().toString().trim();
 
-            if (validateInput(publicTaskTitle, textViewPublicTaskStartDate, textViewPublicTaskEndDate, locationTextView)) {
-                createPublicTask(title, startDate, endDate, location); // Passer tous les paramètres à la méthode
+            if (validateInput(publicTaskTitle, textViewPublicTaskStartDate, textViewPublicTaskEndDate, locationTextView,publicTaskDescription)) {
+                createPublicTask(title, startDate, endDate, location,description ); // Passer tous les paramètres à la méthode
                 alertDialog.dismiss();
             }
         });
@@ -251,20 +261,20 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         alertDialog.show();
     }
 
-    private void createPublicTask(String title, String startDate, String endDate, String location) {
+    private void createPublicTask(String title, String startDate, String endDate, String location,String description ) {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
             String taskId = db.collection("public_tasks").document().getId();
 
             // Correction de l'initialisation du modèle : l'ID de l'utilisateur va dans "userId" et la location dans "location"
-            PublicTaskModel publictask = new PublicTaskModel(taskId, title, startDate, endDate, userId, location);
+            PublicTaskModel publictask = new PublicTaskModel(taskId, title, startDate, endDate, userId, location,description );
 
             // Enregistrement de la tâche publique dans Firestore
             db.collection("public_tasks").document(taskId).set(publictask)
                     .addOnSuccessListener(aVoid -> {
                         // Ajout de la tâche à l'interface utilisateur
-                        View taskView = addTaskToUI(title, startDate, endDate, location);
+                        View taskView = addTaskToUI(title, startDate, endDate, location,description );
                         taskView.setTag(taskId);
                         showToast("Public Task Added");
                     })
@@ -275,8 +285,9 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
     }
 
 
-    private boolean validateInput(EditText titleField, TextView startDateField, TextView endDateField, TextView locationField) {
+    private boolean validateInput(EditText titleField, TextView startDateField, TextView endDateField, TextView locationField,EditText publicTaskDescription) {
         String title = titleField.getText().toString().trim();
+        String description = publicTaskDescription.getText().toString().trim();  // Récupérer la description
         String startDateStr = startDateField.getText().toString().trim();
         String endDateStr = endDateField.getText().toString().trim();
         String location = locationField.getText().toString().trim();
@@ -297,6 +308,12 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
             showToast("Please select an adress for this task");
             return false;
         }
+
+        if (description.isEmpty()) {
+            showToast("Please make a description for this Task");
+            return false;
+        }
+
 
 
 
@@ -361,7 +378,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         datePickerDialog.show();
     }
 
-    private View addTaskToUI(String title, String startDate, String endDate, String location) {
+    private View addTaskToUI(String title, String startDate, String endDate, String location, String description) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_public_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
@@ -369,11 +386,41 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         TextView taskDates = taskView.findViewById(R.id.publictaskDates);
         TextView taskLocation = taskView.findViewById(R.id.location);
         ImageView optionMenu = taskView.findViewById(R.id.publicoptionMenu);
+        ScrollView descriptionScrollView = taskView.findViewById(R.id.descriptionScrollView); // Ajout de la ScrollView
 
         taskTitle.setText(title);
         taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
         taskLocation.setText("Location: " + location);
 
+        // Assurez-vous que la description est cachée initialement
+        TextView taskDescription = taskView.findViewById(R.id.description);
+        taskDescription.setText("Description: " + description);
+        descriptionScrollView.setVisibility(View.GONE); // Initialement cachée
+
+        // Trouver le bouton dans la vue taskView
+        Button openMapButton = taskView.findViewById(R.id.openMapButton);
+        openMapButton.setVisibility(View.GONE); // Initialement caché, sera affiché quand la description sera visible
+
+        openMapButton.setText("See on map");
+        openMapButton.setOnClickListener(v -> {
+            String taskLocationText = taskLocation.getText().toString().replace("Location: ", "").trim();  // Extraire la localisation sans le préfixe "Location: "
+            Intent intent = new Intent(Public_NoteActivity.this, Map.class);
+            intent.putExtra("taskLocation", taskLocationText); // Passer la localisation à l'activité Map
+            startActivityForResult(intent, 2);  // Modifier l'adresse via la carte
+        });
+
+        // Lorsque l'on clique sur la tâche, on affiche ou cache la description et le bouton
+        taskView.setOnClickListener(v -> {
+            if (descriptionScrollView.getVisibility() == View.GONE) {
+                descriptionScrollView.setVisibility(View.VISIBLE); // Afficher la description
+                openMapButton.setVisibility(View.VISIBLE); // Afficher le bouton "See on map"
+            } else {
+                descriptionScrollView.setVisibility(View.GONE); // Cacher la description
+                openMapButton.setVisibility(View.GONE); // Cacher le bouton "See on map"
+            }
+        });
+
+        // Gérer le clic sur le menu d'options
         optionMenu.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(Public_NoteActivity.this, v);
             popupMenu.inflate(R.menu.menu_task_options);
@@ -384,10 +431,11 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                     String currentTitle = taskTitle.getText().toString();
                     String currentDates = taskDates.getText().toString();
                     String currentLocation = taskLocation.getText().toString();
-                    showEditTaskDialog(taskView, currentTitle, currentDates, currentLocation);
+                    String currentDescription = taskDescription.getText().toString();
+                    showEditTaskDialog(taskView, currentTitle, currentDates, currentLocation, currentDescription);
                 } else if (item.getItemId() == R.id.optionDelete) {
                     // Suppression avec confirmation
-                 confirmAndDeleteTask(taskView);
+                    confirmAndDeleteTask(taskView);
                 } else {
                     return false;
                 }
@@ -401,13 +449,13 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         return taskView;
     }
 
-
-    private void showEditTaskDialog(View taskView, String currentTitle, String currentDates, String currentLocation) {
+    private void showEditTaskDialog(View taskView, String currentTitle, String currentDates, String currentLocation,String currentDescription) {
         // Chargement du layout du dialogue
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
 
         // Récupération des éléments du formulaire
         EditText editTaskTitle = dialogView.findViewById(R.id.editpublicTasktitle);
+        EditText editPublicTaskDescription = dialogView.findViewById(R.id.editPublicTaskDescription);
         TextView editStartDate = dialogView.findViewById(R.id.textViewPublicTaskStartDate);
         TextView editEndDate = dialogView.findViewById(R.id.textViewPublicTaskEndDate);
         TextView editTaskLocation = dialogView.findViewById(R.id.location);
@@ -418,7 +466,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         editStartDate.setText(currentDates.split("\n")[0].replace("Start: ", ""));
         editEndDate.setText(currentDates.split("\n")[1].replace("End: ", ""));
         editTaskLocation.setText(currentLocation);
-
+        editPublicTaskDescription.setText(currentDescription);
         // Redirection vers la carte pour modifier l'adresse
         map.setOnClickListener(v -> {
             Intent intent = new Intent(Public_NoteActivity.this, Map.class);
@@ -438,17 +486,18 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         // Gestion du bouton "Save"
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String title = editTaskTitle.getText().toString().trim();
+            String description = editPublicTaskDescription.getText().toString().trim();
             String startDate = editStartDate.getText().toString().trim();
             String endDate = editEndDate.getText().toString().trim();
             String location = editTaskLocation.getText().toString().trim();
 
             // Validation des données
-            if (validateInput(editTaskTitle, editStartDate, editEndDate, editTaskLocation)) {
+            if (validateInput(editTaskTitle, editStartDate, editEndDate, editTaskLocation,editPublicTaskDescription)) {
                 // Si tout est valide, on met à jour Firestore et l'interface utilisateur
                 String taskId = (String) taskView.getTag();  // Récupérer l'ID de la tâche à partir du tag
 
                 // Création du modèle de la tâche mise à jour
-                PublicTaskModel updatedTask = new PublicTaskModel(taskId, title, startDate, endDate, auth.getCurrentUser().getUid(), location);
+                PublicTaskModel updatedTask = new PublicTaskModel(taskId, title, startDate, endDate, auth.getCurrentUser().getUid(), location,description);
 
                 // Mettre à jour la tâche dans Firestore
                 db.collection("public_tasks").document(taskId).set(updatedTask)
@@ -457,10 +506,13 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                             TextView taskTitle = taskView.findViewById(R.id.publictaskTitle);
                             TextView taskDates = taskView.findViewById(R.id.publictaskDates);
                             TextView taskLocation = taskView.findViewById(R.id.location);
+                            TextView taskDescription = taskView.findViewById(R.id.description);
+
 
                             taskTitle.setText(title);
                             taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
                             taskLocation.setText(location);
+                            taskDescription.setText(description);
 
                             showToast("Public Task Updated");
                         })

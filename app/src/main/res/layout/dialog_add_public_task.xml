@@ -55,6 +55,18 @@
         android:hint="Location will appear here"
         android:focusable="true"/>
 
+    <EditText
+        android:id="@+id/editPublicTaskDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Add description"
+        android:background="@drawable/bg_textview"
+        android:gravity="top|start"
+        android:layout_marginBottom="10dp"
+        android:inputType="textMultiLine"
+        android:minHeight="120dp"
+        android:maxLines="5"/>
+
 
     <Button
         android:id="@+id/locationTextView"

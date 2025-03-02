@@ -62,6 +62,14 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
         Okbutton = findViewById(R.id.buttonOK);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // Récupérer la localisation passée depuis l'activité précédente
+        String taskLocation = getIntent().getStringExtra("taskLocation");
+        if (taskLocation != null) {
+            // Afficher la localisation de la tâche dans le champ de texte
+            addressInput.setText(taskLocation);
+        }
+
+
         // Configurer la carte
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
