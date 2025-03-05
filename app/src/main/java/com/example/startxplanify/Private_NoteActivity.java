@@ -123,14 +123,18 @@ public class Private_NoteActivity extends AppCompatActivity {
             String userId = user.getUid();
             db.collection("private_tasks").whereEqualTo("userId", userId).get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
+                        taskContainer.removeAllViews();  // On vide d'abord l'UI avant d'ajouter les tâches
                         if (queryDocumentSnapshots.isEmpty()) {
                             showToast("No tasks found.");
                         } else {
                             for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                                 PrivateTaskModel privateTask = doc.toObject(PrivateTaskModel.class);
                                 if (privateTask != null) {
-                                    // Affichage des tâches sans prendre en compte isCompleted pour le moment
-                                    addTaskToUI(privateTask.getTitle(), privateTask.getStartDate(), privateTask.getEndDate(), false, privateTask.getId());
+                                    // Vérifier et récupérer la valeur de `completed` depuis Firestore
+                                    boolean isCompleted = doc.getBoolean("completed"); // Utilise `completed` ici pour le Firestore
+
+                                    // Affichage des tâches dans l'UI avec l'état `isCompleted` actualisé
+                                    addTaskToUI(privateTask.getTitle(), privateTask.getStartDate(), privateTask.getEndDate(), isCompleted, privateTask.getId());
                                 }
                             }
                         }
@@ -141,7 +145,6 @@ public class Private_NoteActivity extends AppCompatActivity {
 
 
 
-    // Charger l'état de la tâche depuis SharedPreferences
     // Charger l'état de la tâche depuis SharedPreferences
     private boolean loadTaskStateFromPreferences(String taskId) {
         SharedPreferences sharedPreferences = getSharedPreferences("tasks_pref", MODE_PRIVATE);
@@ -193,6 +196,7 @@ public class Private_NoteActivity extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> {
                         View taskView = addTaskToUI(taskTitle, startDate, endDate, false,taskId);  // false pour indiquer qu'elle n'est pas terminée
                         taskView.setTag(taskId);
+                        loadUserTasks();
                         showToast("Task Added");
                     })
                     .addOnFailureListener(e -> showToast("Error saving task"));
@@ -282,7 +286,6 @@ public class Private_NoteActivity extends AppCompatActivity {
         TextView taskTitle = taskView.findViewById(R.id.taskTitle);
         TextView taskDates = taskView.findViewById(R.id.taskDates);
         CheckBox checkBoxCompleted = taskView.findViewById(R.id.checkbox);
-
         ImageView optionMenu = taskView.findViewById(R.id.optionMenu);
 
         taskTitle.setText(title);
