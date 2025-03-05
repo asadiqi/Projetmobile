@@ -7,11 +7,13 @@ public class PublicTaskModel {
     private String userId;
     private String location;
     private String description;
+    private String creatorName;
+
+
 
     public PublicTaskModel() {} // Nécessaire pour Firebase
 
-    public PublicTaskModel(String id, String title, String startDate, String endDate, String userId,String location, String description) {
-        this.id = id;
+    public PublicTaskModel(String id, String title, String startDate, String endDate, String userId,String location, String description,String creatorName) {
         this.id = id;
         this.title = title;
         this.startDate = startDate;
@@ -19,6 +21,8 @@ public class PublicTaskModel {
         this.userId = userId;
         this.location = location;
         this.description = description;
+        this.creatorName = creatorName;
+
 
     }
 
@@ -26,20 +30,11 @@ public class PublicTaskModel {
     public String getTitle() { return title; }
     public String getStartDate() { return startDate; }
     public String getEndDate() { return endDate; }
-    public String getUserId() { return userId; }
-
-    public String getLocation() {
-        return location;
-    }
-
+    public String getLocation() { return location; }
     public String getDescription() { return description; }  // Getter pour la description
 
+    public String getCreatorName() { return creatorName; }  // Getter pour le nom du créateur
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
 
-    public void setDescription(String description) {  // Setter pour la description
-        this.description = description;
-    }
 }
+

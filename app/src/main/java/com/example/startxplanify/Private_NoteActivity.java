@@ -4,11 +4,13 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Paint;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -83,9 +85,7 @@ public class Private_NoteActivity extends AppCompatActivity {
 
     private void handleNavigationItemClick(int itemId) {
         if (itemId == R.id.nav_home) {
-            Intent intent = new Intent(Private_NoteActivity.this, ok.class);
-            startActivity(intent);
-            finish();
+
             showToast("Home sélectionné");
         } else if (itemId == R.id.nav_settings) {
             showToast("Settings sélectionné");
@@ -123,16 +123,34 @@ public class Private_NoteActivity extends AppCompatActivity {
             String userId = user.getUid();
             db.collection("private_tasks").whereEqualTo("userId", userId).get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
-                        for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                            PrivateTaskModel private_tasks = doc.toObject(PrivateTaskModel.class);
-                            if (private_tasks != null) {
-                                View taskView = addTaskToUI(private_tasks.getTitle(), private_tasks.getStartDate(), private_tasks.getEndDate());
-                                taskView.setTag(private_tasks.getId());
+                        if (queryDocumentSnapshots.isEmpty()) {
+                            showToast("No tasks found.");
+                        } else {
+                            for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                                PrivateTaskModel privateTask = doc.toObject(PrivateTaskModel.class);
+                                if (privateTask != null) {
+                                    // Affichage des tâches sans prendre en compte isCompleted pour le moment
+                                    addTaskToUI(privateTask.getTitle(), privateTask.getStartDate(), privateTask.getEndDate(), false, privateTask.getId());
+                                }
                             }
                         }
                     })
                     .addOnFailureListener(e -> showToast("Error loading tasks"));
         }
+    }
+
+
+
+    // Charger l'état de la tâche depuis SharedPreferences
+    // Charger l'état de la tâche depuis SharedPreferences
+    private boolean loadTaskStateFromPreferences(String taskId) {
+        SharedPreferences sharedPreferences = getSharedPreferences("tasks_pref", MODE_PRIVATE);
+        return sharedPreferences.getBoolean(taskId, false); // Retourne false par défaut si l'état n'est pas trouvé
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserTasks();  // Recharge les tâches à chaque fois que l'activité est réouverte
     }
 
     private void showAddPrivateTaskDialog() {
@@ -170,10 +188,10 @@ public class Private_NoteActivity extends AppCompatActivity {
             String userId = user.getUid();
             String taskId = db.collection("private_tasks").document().getId();
 
-            PrivateTaskModel task = new PrivateTaskModel(taskId, taskTitle, startDate, endDate, userId);
+            PrivateTaskModel task = new PrivateTaskModel(taskId, taskTitle, startDate, endDate, userId,false);
             db.collection("private_tasks").document(taskId).set(task)
                     .addOnSuccessListener(aVoid -> {
-                        View taskView = addTaskToUI(taskTitle, startDate, endDate);
+                        View taskView = addTaskToUI(taskTitle, startDate, endDate, false,taskId);  // false pour indiquer qu'elle n'est pas terminée
                         taskView.setTag(taskId);
                         showToast("Task Added");
                     })
@@ -257,16 +275,50 @@ public class Private_NoteActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private View addTaskToUI(String title, String startDate, String endDate) {
+    private View addTaskToUI(String title, String startDate, String endDate,boolean isCompleted, String taskId) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_private_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
         TextView taskTitle = taskView.findViewById(R.id.taskTitle);
         TextView taskDates = taskView.findViewById(R.id.taskDates);
+        CheckBox checkBoxCompleted = taskView.findViewById(R.id.checkbox);
+
         ImageView optionMenu = taskView.findViewById(R.id.optionMenu);
 
         taskTitle.setText(title);
         taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
+
+        // If the task is completed, strike-through the title and dates
+        if (isCompleted) {
+            checkBoxCompleted.setChecked(true);
+            taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            taskDates.setPaintFlags(taskDates.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+        } else {
+            checkBoxCompleted.setChecked(false);
+            taskTitle.setPaintFlags(taskTitle.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+            taskDates.setPaintFlags(taskDates.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+        }
+
+        checkBoxCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences sharedPreferences = getSharedPreferences("tasks_pref", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(taskId, isChecked); // Utilise l'ID de la tâche pour garder l'état
+            editor.apply();
+
+            // Mise à jour de Firestore avec le nouvel état
+            db.collection("private_tasks").document(taskId).update("isCompleted", isChecked)
+                    .addOnSuccessListener(aVoid -> {
+                        // Met à jour l'UI en fonction de l'état de la tâche
+                        if (isChecked) {
+                            taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                            taskDates.setPaintFlags(taskDates.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                        } else {
+                            taskTitle.setPaintFlags(taskTitle.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+                            taskDates.setPaintFlags(taskDates.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+                        }
+                    })
+                    .addOnFailureListener(e -> showToast("Error updating task"));
+        });
 
         optionMenu.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(Private_NoteActivity.this, v);
@@ -289,7 +341,7 @@ public class Private_NoteActivity extends AppCompatActivity {
 
             popupMenu.show();
         });
-
+        taskView.setTag(taskId);
         taskContainer.addView(taskView, 0);
         return taskView;
     }
@@ -406,3 +458,5 @@ public class Private_NoteActivity extends AppCompatActivity {
         showToast("You are logged out");
     }
 }
+
+

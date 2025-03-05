@@ -1,9 +1,11 @@
+
 package com.example.startxplanify;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Paint;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,6 +36,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Public_NoteActivity extends AppCompatActivity implements AddressUpdateListener {
 
@@ -51,13 +54,10 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
     private AlertDialog alertDialog;
 
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
-
 
         // Initialisation des vues
         buttonAddNote = findViewById(R.id.button_addNote);
@@ -106,10 +106,6 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         drawerLayout.closeDrawers();
     }
 
-
-
-
-
     private void setupNightModePreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         boolean isNightMode = sharedPreferences.getBoolean("night_mode", false);
@@ -127,23 +123,22 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
     }
 
     private void loadUserTasks() {
-        FirebaseUser user = auth.getCurrentUser();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            String userId = user.getUid();
             db.collection("public_tasks")
-                    .whereEqualTo("userId", userId)  // Assurez-vous que c'est le userId et non la location
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                             PublicTaskModel public_task = doc.toObject(PublicTaskModel.class);
                             if (public_task != null) {
-                                // Utilisation des bonnes données de modèle ici
+                                String creatorName = public_task.getCreatorName();  // Récupère le nom du créateur depuis le modèle
                                 View taskView = addTaskToUI(
                                         public_task.getTitle(),
                                         public_task.getStartDate(),
                                         public_task.getEndDate(),
                                         public_task.getLocation(),
-                                        public_task.getDescription()
+                                        public_task.getDescription(),
+                                        creatorName // Passe le nom du créateur à la méthode
                                 );
                                 taskView.setTag(public_task.getId());
                             }
@@ -152,8 +147,6 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                     .addOnFailureListener(e -> showToast("Error loading tasks"));
         }
     }
-
-
 
     private void showAddPublicTaskDialog() {
         // Chargement du layout du dialogue
@@ -261,24 +254,52 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         alertDialog.show();
     }
 
-    private void createPublicTask(String title, String startDate, String endDate, String location,String description ) {
+    private void createPublicTask(String title, String startDate, String endDate, String location, String description) {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
             String taskId = db.collection("public_tasks").document().getId();
 
-            // Correction de l'initialisation du modèle : l'ID de l'utilisateur va dans "userId" et la location dans "location"
-            PublicTaskModel publictask = new PublicTaskModel(taskId, title, startDate, endDate, userId, location,description );
+            // Récupérer le nom de l'utilisateur depuis Firebase Auth
+            AtomicReference<String> creatorName = new AtomicReference<>(user.getDisplayName());
 
-            // Enregistrement de la tâche publique dans Firestore
-            db.collection("public_tasks").document(taskId).set(publictask)
-                    .addOnSuccessListener(aVoid -> {
-                        // Ajout de la tâche à l'interface utilisateur
-                        View taskView = addTaskToUI(title, startDate, endDate, location,description );
-                        taskView.setTag(taskId);
-                        showToast("Public Task Added");
-                    })
-                    .addOnFailureListener(e -> showToast("Error saving public task: " + e.getMessage()));
+            // Si le nom est vide, aller récupérer le nom dans la collection "users"
+            if (creatorName.get() == null || creatorName.get().isEmpty()) {
+                db.collection("users").document(userId).get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                // Récupérer le nom depuis la collection 'users'
+                                creatorName.set(documentSnapshot.getString("name")); // Supposons que le nom est stocké sous la clé "name"
+                            }
+                            if (creatorName.get() == null || creatorName.get().isEmpty()) {
+                                creatorName.set(user.getEmail()); // Utiliser l'email si le nom est toujours vide
+                            }
+                            // Créer la tâche publique avec le nom correct
+                            PublicTaskModel publicTask = new PublicTaskModel(taskId, title, startDate, endDate, userId, location, description, creatorName.get());
+                            // Enregistrer la tâche dans Firestore
+                            db.collection("public_tasks").document(taskId).set(publicTask)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Afficher la tâche dans l'interface
+                                        View taskView = addTaskToUI(title, startDate, endDate, location, description, creatorName.get());
+                                        taskView.setTag(taskId);
+                                        showToast("Public Task Added");
+                                    })
+                                    .addOnFailureListener(e -> showToast("Error saving public task: " + e.getMessage()));
+                        })
+                        .addOnFailureListener(e -> showToast("Error fetching user name: " + e.getMessage()));
+            } else {
+                // Si le nom est déjà disponible dans Firebase Auth, on utilise ce nom
+                PublicTaskModel publicTask = new PublicTaskModel(taskId, title, startDate, endDate, userId, location, description, creatorName.get());
+                // Enregistrer la tâche dans Firestore
+                db.collection("public_tasks").document(taskId).set(publicTask)
+                        .addOnSuccessListener(aVoid -> {
+                            // Afficher la tâche dans l'interface
+                            View taskView = addTaskToUI(title, startDate, endDate, location, description, creatorName.get());
+                            taskView.setTag(taskId);
+                            showToast("Public Task Added");
+                        })
+                        .addOnFailureListener(e -> showToast("Error saving public task: " + e.getMessage()));
+            }
         } else {
             showToast("User not authenticated");
         }
@@ -313,11 +334,6 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
             showToast("Please make a description for this Task");
             return false;
         }
-
-
-
-
-
 
         return isValidDateRange(startDateStr, endDateStr);
     }
@@ -378,21 +394,26 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         datePickerDialog.show();
     }
 
-    private View addTaskToUI(String title, String startDate, String endDate, String location, String description) {
+    private View addTaskToUI(String title, String startDate, String endDate, String location, String description,String creatorName) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_public_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
         TextView taskTitle = taskView.findViewById(R.id.publictaskTitle);
         TextView taskDates = taskView.findViewById(R.id.publictaskDates);
         TextView taskLocation = taskView.findViewById(R.id.location);
+        TextView creatorNameTextView = taskView.findViewById(R.id.creatorName);
         ImageView optionMenu = taskView.findViewById(R.id.publicoptionMenu);
         ScrollView descriptionScrollView = taskView.findViewById(R.id.descriptionScrollView); // Ajout de la ScrollView
+
 
         taskTitle.setText(title);
         taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
         taskLocation.setText("Location: " + location);
 
-        // Assurez-vous que la description est cachée initialement
+        // Mettre à jour le nom du créateur
+        creatorNameTextView.setText("Created by: " + creatorName); // Afficher le nom du créateur ici
+
+
         TextView taskDescription = taskView.findViewById(R.id.description);
         taskDescription.setText("Description: " + description);
         descriptionScrollView.setVisibility(View.GONE); // Initialement cachée
@@ -408,6 +429,8 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
             intent.putExtra("taskLocation", taskLocationText); // Passer la localisation à l'activité Map
             startActivityForResult(intent, 2);  // Modifier l'adresse via la carte
         });
+
+
 
         // Lorsque l'on clique sur la tâche, on affiche ou cache la description et le bouton
         taskView.setOnClickListener(v -> {
@@ -449,6 +472,17 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         return taskView;
     }
 
+
+    private void updateTaskCompletionStatus(String taskId, boolean isCompleted) {
+        db.collection("public_tasks").document(taskId)
+                .update("isCompleted", isCompleted)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Task", "Task status updated.");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Task", "Status update error.", e);
+                });
+    }
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates, String currentLocation,String currentDescription) {
         // Chargement du layout du dialogue
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
@@ -459,6 +493,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         TextView editStartDate = dialogView.findViewById(R.id.textViewPublicTaskStartDate);
         TextView editEndDate = dialogView.findViewById(R.id.textViewPublicTaskEndDate);
         TextView editTaskLocation = dialogView.findViewById(R.id.location);
+        String creatorName = auth.getCurrentUser().getDisplayName();
         TextView map = dialogView.findViewById(R.id.locationTextView);
 
         // Remplir les champs avec les valeurs actuelles
@@ -497,8 +532,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                 String taskId = (String) taskView.getTag();  // Récupérer l'ID de la tâche à partir du tag
 
                 // Création du modèle de la tâche mise à jour
-                PublicTaskModel updatedTask = new PublicTaskModel(taskId, title, startDate, endDate, auth.getCurrentUser().getUid(), location,description);
-
+                PublicTaskModel updatedTask = new PublicTaskModel(taskId, title, startDate, endDate, auth.getCurrentUser().getUid(), location,description,creatorName);
                 // Mettre à jour la tâche dans Firestore
                 db.collection("public_tasks").document(taskId).set(updatedTask)
                         .addOnSuccessListener(aVoid -> {
@@ -585,3 +619,4 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
 
 
 }
+

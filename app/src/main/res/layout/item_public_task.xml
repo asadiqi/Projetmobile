@@ -43,6 +43,17 @@
             android:maxLines="2"
             android:ellipsize="end"/>
 
+        <TextView
+            android:id="@+id/creatorName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Created by: Person Name"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:layout_marginBottom="5dp"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
         <!-- Description défilable dans un ScrollView -->
         <ScrollView
             android:id="@+id/descriptionScrollView"
