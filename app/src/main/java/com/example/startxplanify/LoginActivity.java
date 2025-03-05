@@ -1,3 +1,5 @@
+
+
 package com.example.startxplanify;
 
 import android.annotation.SuppressLint;
@@ -76,12 +78,12 @@ public class LoginActivity extends AppCompatActivity {
         // vérifécation des champs
         if (TextUtils.isEmpty(email)) {
             Toast.makeText(this, "Please Enter Your Email", Toast.LENGTH_SHORT).show();
-          return;
+            return;
         }
 
         if (TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Please Enter Your Password", Toast.LENGTH_SHORT).show();
-           return;
+            return;
         }
 
         //L'API Firebase Authentication est utilisée ici pour authentifier l'utilisateur avec son email et mot de passe
@@ -93,10 +95,10 @@ public class LoginActivity extends AppCompatActivity {
                         FirebaseUser user = firebaseAuth.getCurrentUser();
                         if (user != null ) {
                             if (user.isEmailVerified()) {
-                            // Si l'email est vérifié, enregistrer l'utilisateur dans Firestore
-                            addUserToFirestore(user);
+                                // Si l'email est vérifié, enregistrer l'utilisateur dans Firestore
+                                addUserToFirestore(user);
 
-                            //on sauvgarder l'état de connexion dans SharedPreferences
+                                //on sauvgarder l'état de connexion dans SharedPreferences
                                 SharedPreferences sharedPreferences = getSharedPreferences("settings",MODE_PRIVATE);
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putBoolean("is_logged_in",true);
@@ -106,11 +108,11 @@ public class LoginActivity extends AppCompatActivity {
                                 startActivity(new Intent(LoginActivity.this , Private_NoteActivity.class));
                                 finish();
 
-                        } else {
-                            Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_SHORT).show();
 
-                        }
                             }
+                        }
                     } else {
                         Toast.makeText(this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
 
@@ -121,19 +123,28 @@ public class LoginActivity extends AppCompatActivity {
     // Méthode pour ajouter l'utilisateur dans Firestore
     //L'API Firebase Firestore est utilisée ici pour enregistrer les informations de l'utilisateur après la connexion
     private void addUserToFirestore(FirebaseUser user) {
-
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String userId = user.getUid();
 
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("name", user.getDisplayName());
-        userData.put("email", user.getEmail());
-
+        // Récupérer les informations de l'utilisateur depuis Firestore
         db.collection("users").document(userId)
-                .set(userData)
-                .addOnSuccessListener(aVoid -> showToast("You are Loged in"))
-                .addOnFailureListener(e -> showToast("Database error: " + e.getMessage()));
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String name = documentSnapshot.getString("name");
+                        // Enregistrer le nom dans les préférences ou faire ce que vous voulez avec ce nom
+                        // Ici, vous pouvez l'ajouter dans SharedPreferences si vous en avez besoin
+                        SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("name", name);
+                        editor.apply();
+
+                        showToast("You are logged in as: " + name);
+                    }
+                })
+                .addOnFailureListener(e -> showToast("Error retrieving user data: " + e.getMessage()));
     }
+
 
     // Méthode pour afficher un message Toast
     private void showToast(String message) {
@@ -182,3 +193,4 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 }
+

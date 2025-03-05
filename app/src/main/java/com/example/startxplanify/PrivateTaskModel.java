@@ -16,7 +16,7 @@ public class PrivateTaskModel {
         this.startDate = startDate;
         this.endDate = endDate;
         this.userId = userId;
-        this.isCompleted = isCompleted; // <-- Utilisez la valeur passée en paramètre
+        this.isCompleted = isCompleted;
     }
 
     public String getId() { return id; }

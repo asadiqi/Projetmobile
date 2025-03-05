@@ -123,17 +123,19 @@ public class Private_NoteActivity extends AppCompatActivity {
             String userId = user.getUid();
             db.collection("private_tasks").whereEqualTo("userId", userId).get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
-                        taskContainer.removeAllViews();  // On vide d'abord l'UI avant d'ajouter les tâches
+                        taskContainer.removeAllViews();
                         if (queryDocumentSnapshots.isEmpty()) {
                             showToast("No tasks found.");
                         } else {
                             for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                                 PrivateTaskModel privateTask = doc.toObject(PrivateTaskModel.class);
                                 if (privateTask != null) {
-                                    // Vérifier et récupérer la valeur de `completed` depuis Firestore
-                                    boolean isCompleted = doc.getBoolean("completed"); // Utilise `completed` ici pour le Firestore
+                                    boolean isCompleted = privateTask.isCompleted(); // Utilise `isCompleted`
 
-                                    // Affichage des tâches dans l'UI avec l'état `isCompleted` actualisé
+                                    // Récupérer l'état du CheckBox dans SharedPreferences
+                                    SharedPreferences sharedPreferences = getSharedPreferences("tasks_pref", MODE_PRIVATE);
+                                    isCompleted = sharedPreferences.getBoolean(privateTask.getId(), isCompleted);
+
                                     addTaskToUI(privateTask.getTitle(), privateTask.getStartDate(), privateTask.getEndDate(), isCompleted, privateTask.getId());
                                 }
                             }
@@ -141,19 +143,6 @@ public class Private_NoteActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> showToast("Error loading tasks"));
         }
-    }
-
-
-
-    // Charger l'état de la tâche depuis SharedPreferences
-    private boolean loadTaskStateFromPreferences(String taskId) {
-        SharedPreferences sharedPreferences = getSharedPreferences("tasks_pref", MODE_PRIVATE);
-        return sharedPreferences.getBoolean(taskId, false); // Retourne false par défaut si l'état n'est pas trouvé
-    }
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadUserTasks();  // Recharge les tâches à chaque fois que l'activité est réouverte
     }
 
     private void showAddPrivateTaskDialog() {

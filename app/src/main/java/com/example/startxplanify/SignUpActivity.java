@@ -1,3 +1,4 @@
+
 package com.example.startxplanify;
 
 import android.content.Intent;
@@ -71,10 +72,10 @@ public class SignUpActivity extends AppCompatActivity {
 
     // Cette méthode valide les informations saisies par l'utilisateur lors de l'inscription.
     private void validateAndSignUp() {
-         name = editTextName.getText().toString().trim();
-         email = editTextEmail.getText().toString().trim();
-         password = editTextPassword.getText().toString().trim();
-         confirmPassword = editTextConfirmPassword.getText().toString().trim();
+        name = editTextName.getText().toString().trim();
+        email = editTextEmail.getText().toString().trim();
+        password = editTextPassword.getText().toString().trim();
+        confirmPassword = editTextConfirmPassword.getText().toString().trim();
 
         // Utilisation des méthodes isEmpty et isValidEmail pour vérifier les champs
         if (isEmpty(name, "Please Enter Your Name")) return;
@@ -115,21 +116,37 @@ public class SignUpActivity extends AppCompatActivity {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Envoi de l'email de vérification
-                        firebaseAuth.getCurrentUser().sendEmailVerification()
-                                .addOnSuccessListener(aVoid -> {
-                                    // Afficher un dialogue pour informer l'utilisateur
-                                    showVerificationDialog();
-                                    // L'utilisateur n'est pas encore enregistré dans Firestore
-                                })
-                                .addOnFailureListener(e -> showToast("Failed to send verification email: " + e.getMessage()));
+                        FirebaseUser user = firebaseAuth.getCurrentUser();
+                        if (user != null) {
+                            // Ajouter le nom dans Firestore après l'inscription
+                            addUserToFirestore(user, name);
+                            // Envoi de l'email de vérification
+                            user.sendEmailVerification()
+                                    .addOnSuccessListener(aVoid -> {
+                                        showVerificationDialog();
+                                    })
+                                    .addOnFailureListener(e -> showToast("Failed to send verification email: " + e.getMessage()));
+                        }
                     } else {
                         showToast("Registration failed: " + task.getException().getMessage());
                     }
-
                 });
-
     }
+
+    private void addUserToFirestore(FirebaseUser user, String name) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String userId = user.getUid();
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("name", name);  // Ajoute le nom de l'utilisateur dans Firestore
+        userData.put("email", user.getEmail());
+
+        db.collection("users").document(userId)
+                .set(userData)
+                .addOnSuccessListener(aVoid -> showToast("User added to Firestore"))
+                .addOnFailureListener(e -> showToast("Error adding user to Firestore: " + e.getMessage()));
+    }
+
 
 
     private void  showVerificationDialog() {
@@ -169,6 +186,5 @@ public class SignUpActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    }
-
+}
 
