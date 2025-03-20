@@ -136,7 +136,7 @@ public class Private_NoteActivity extends AppCompatActivity {
                                     SharedPreferences sharedPreferences = getSharedPreferences("tasks_pref", MODE_PRIVATE);
                                     isCompleted = sharedPreferences.getBoolean(privateTask.getId(), isCompleted);
 
-                                    addTaskToUI(privateTask.getTitle(), privateTask.getStartDate(), privateTask.getEndDate(), isCompleted, privateTask.getId());
+                                    addTaskToUI(privateTask.getTitle(), privateTask.getEndDate(), isCompleted, privateTask.getId());
                                 }
                             }
                         }
@@ -148,7 +148,6 @@ public class Private_NoteActivity extends AppCompatActivity {
     private void showAddPrivateTaskDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_private_task, null);
         EditText privateTaskTitle = dialogView.findViewById(R.id.editprivateTasktitle);
-        textViewTaskStartDate = dialogView.findViewById(R.id.textViewTaskStartDate);
         textViewTaskEndDate = dialogView.findViewById(R.id.textViewTaskEndDate);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -161,18 +160,16 @@ public class Private_NoteActivity extends AppCompatActivity {
         alertDialog.show();
 
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            if (validateInput(privateTaskTitle, textViewTaskStartDate, textViewTaskEndDate)) {
+            if (validateInput(privateTaskTitle, textViewTaskEndDate)) {
                 createTask(privateTaskTitle.getText().toString().trim());
                 alertDialog.dismiss();
             }
         });
 
-        textViewTaskStartDate.setOnClickListener(v -> showDateTimePicker(textViewTaskStartDate));
         textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
     }
 
     private void createTask(String taskTitle) {
-        String startDate = textViewTaskStartDate.getText().toString().trim();
         String endDate = textViewTaskEndDate.getText().toString().trim();
 
         FirebaseUser user = auth.getCurrentUser();
@@ -180,10 +177,10 @@ public class Private_NoteActivity extends AppCompatActivity {
             String userId = user.getUid();
             String taskId = db.collection("private_tasks").document().getId();
 
-            PrivateTaskModel task = new PrivateTaskModel(taskId, taskTitle, startDate, endDate, userId,false);
+            PrivateTaskModel task = new PrivateTaskModel(taskId, taskTitle, endDate, userId,false);
             db.collection("private_tasks").document(taskId).set(task)
                     .addOnSuccessListener(aVoid -> {
-                        View taskView = addTaskToUI(taskTitle, startDate, endDate, false,taskId);  // false pour indiquer qu'elle n'est pas terminée
+                        View taskView = addTaskToUI(taskTitle, endDate, false,taskId);  // false pour indiquer qu'elle n'est pas terminée
                         taskView.setTag(taskId);
                         loadUserTasks();
                         showToast("Task Added");
@@ -192,50 +189,25 @@ public class Private_NoteActivity extends AppCompatActivity {
         }
     }
 
-    private boolean validateInput(EditText titleField, TextView startDateField, TextView endDateField) {
+    private boolean validateInput(EditText titleField,  TextView endDateField) {
         String title = titleField.getText().toString().trim();
-        String startDateStr = startDateField.getText().toString().trim();
         String endDateStr = endDateField.getText().toString().trim();
 
         if (title.isEmpty()) {
             showToast("Please enter a Title");
             return false;
-        }
-        if (startDateStr.isEmpty()) {
-            showToast("Please select a Start Date and Time");
-            return false;
+
+
         }
         if (endDateStr.isEmpty()) {
             showToast("Please select an End Date and Time");
             return false;
         }
-        return isValidDateRange(startDateStr, endDateStr);
+        //return isValidDateRange(startDateStr, endDateStr);
+        return true;
     }
 
     // Méthode modifiée de validation de la plage de dates
-    private boolean isValidDateRange(String startDateStr, String endDateStr) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-        try {
-            Date startDate = dateFormat.parse(startDateStr);
-            Date endDate = dateFormat.parse(endDateStr);
-
-            // Vérification si la date de début est avant la date de fin
-            if (startDate != null && endDate != null) {
-                if (startDate.after(endDate)) {
-                    showToast("Start Date cannot be after End Date");
-                    return false;  // Si la date de début est après la date de fin, retournera false
-                }
-                return true;
-            } else {
-                showToast("Invalid date format");
-                return false;
-            }
-        } catch (ParseException e) {
-            showToast("Invalid date format");
-            return false;
-        }
-    }
-
 
 
     private void showToast(String message) {
@@ -268,7 +240,7 @@ public class Private_NoteActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private View addTaskToUI(String title, String startDate, String endDate,boolean isCompleted, String taskId) {
+    private View addTaskToUI(String title, String endDate,boolean isCompleted, String taskId) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_private_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
@@ -278,7 +250,7 @@ public class Private_NoteActivity extends AppCompatActivity {
         ImageView optionMenu = taskView.findViewById(R.id.optionMenu);
 
         taskTitle.setText(title);
-        taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
+        taskDates.setText("Start: " + endDate);
 
         // If the task is completed, strike-through the title and dates
         if (isCompleted) {
@@ -344,7 +316,6 @@ public class Private_NoteActivity extends AppCompatActivity {
 
         // Trouver les éléments de l'interface du dialogue
         EditText editTaskTitle = dialogView.findViewById(R.id.editprivateTasktitle);
-        TextView textViewTaskStartDate = dialogView.findViewById(R.id.textViewTaskStartDate);
         TextView textViewTaskEndDate = dialogView.findViewById(R.id.textViewTaskEndDate);
 
         // Extraire les dates actuelles
@@ -370,7 +341,7 @@ public class Private_NoteActivity extends AppCompatActivity {
 
         // Gérer la logique du bouton "Save"
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            if (validateInput(editTaskTitle, textViewTaskStartDate, textViewTaskEndDate)) {
+            if (validateInput(editTaskTitle, textViewTaskEndDate)) {
                 // Récupérer les nouvelles valeurs
                 String newTitle = editTaskTitle.getText().toString().trim();
                 String newStartDate = textViewTaskStartDate.getText().toString().trim();
@@ -385,7 +356,7 @@ public class Private_NoteActivity extends AppCompatActivity {
                         .addOnSuccessListener(aVoid -> {
                             // Mettre à jour les éléments de l'UI avec les nouvelles valeurs
                             ((TextView) taskView.findViewById(R.id.taskTitle)).setText(newTitle);
-                            ((TextView) taskView.findViewById(R.id.taskDates)).setText("Start: " + newStartDate + "\nEnd: " + newEndDate);
+                            ((TextView) taskView.findViewById(R.id.taskDates)).setText("End: " + newEndDate);
                             Toast.makeText(this, "Task Updated", Toast.LENGTH_SHORT).show();
                             alertDialog.dismiss();
                         })
@@ -396,7 +367,7 @@ public class Private_NoteActivity extends AppCompatActivity {
                 TextView taskDates = taskView.findViewById(R.id.taskDates);
 
                 taskTitle.setText(newTitle);
-                taskDates.setText("Start: " + newStartDate + "\nEnd: " + newEndDate);
+                taskDates.setText("End: " + newEndDate);
 
                 Toast.makeText(this, "Task Updated", Toast.LENGTH_SHORT).show();
                 alertDialog.dismiss();
@@ -404,7 +375,6 @@ public class Private_NoteActivity extends AppCompatActivity {
         });
 
         // Ajouter des listeners pour les dates de début et de fin
-        textViewTaskStartDate.setOnClickListener(v -> showDateTimePicker(textViewTaskStartDate));
         textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
     }
 
