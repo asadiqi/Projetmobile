@@ -44,7 +44,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private Button buttonAddNote;
-    private TextView textViewPublicTaskStartDate, textViewPublicTaskEndDate;
+    private TextView  textViewPublicTaskEndDate;
     private TextView locationTextView; // Déclarez le TextView pour l'adresse complète
 
     private LinearLayout taskContainer;
@@ -134,7 +134,6 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                                 String creatorName = public_task.getCreatorName();  // Récupère le nom du créateur depuis le modèle
                                 View taskView = addTaskToUI(
                                         public_task.getTitle(),
-                                        public_task.getStartDate(),
                                         public_task.getEndDate(),
                                         public_task.getLocation(),
                                         public_task.getDescription(),
@@ -155,8 +154,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         // Récupération des éléments du formulaire
         EditText publicTaskTitle = dialogView.findViewById(R.id.editpublicTasktitle);
         EditText publicTaskDescription = dialogView.findViewById(R.id.editPublicTaskDescription);
-        textViewPublicTaskStartDate = dialogView.findViewById(R.id.textViewPublicTaskStartDate);
-        textViewPublicTaskEndDate = dialogView.findViewById(R.id.textViewPublicTaskEndDate);
+        textViewPublicTaskEndDate = dialogView.findViewById(R.id.textViewPublicTaskDeadline);
         locationTextView = dialogView.findViewById(R.id.location); // Récupérer le TextView pour l'adresse
         TextView map = dialogView.findViewById(R.id.locationTextView);
         // Redirection vers la carte au focus
@@ -179,18 +177,16 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String title = publicTaskTitle.getText().toString().trim();
             String description = publicTaskDescription.getText().toString().trim();
-            String startDate = textViewPublicTaskStartDate.getText().toString().trim();
             String endDate = textViewPublicTaskEndDate.getText().toString().trim();
             String location = locationTextView.getText().toString().trim();
 
-            if (validateInput(publicTaskTitle, textViewPublicTaskStartDate, textViewPublicTaskEndDate, locationTextView,publicTaskDescription)) {
-                createPublicTask(title, startDate, endDate, location,description ); // Passer tous les paramètres à la méthode
+            if (validateInput(publicTaskTitle, textViewPublicTaskEndDate, locationTextView,publicTaskDescription)) {
+                createPublicTask(title, endDate, location,description ); // Passer tous les paramètres à la méthode
                 alertDialog.dismiss();
             }
         });
 
         // Gestion des sélecteurs de date
-        textViewPublicTaskStartDate.setOnClickListener(v -> showDateTimePicker(textViewPublicTaskStartDate));
         textViewPublicTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewPublicTaskEndDate));
     }
 
@@ -254,7 +250,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         alertDialog.show();
     }
 
-    private void createPublicTask(String title, String startDate, String endDate, String location, String description) {
+    private void createPublicTask(String title, String endDate, String location, String description) {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
@@ -275,12 +271,12 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                                 creatorName.set(user.getEmail()); // Utiliser l'email si le nom est toujours vide
                             }
                             // Créer la tâche publique avec le nom correct
-                            PublicTaskModel publicTask = new PublicTaskModel(taskId, title, startDate, endDate, userId, location, description, creatorName.get());
+                            PublicTaskModel publicTask = new PublicTaskModel(taskId, title, endDate, userId, location, description, creatorName.get());
                             // Enregistrer la tâche dans Firestore
                             db.collection("public_tasks").document(taskId).set(publicTask)
                                     .addOnSuccessListener(aVoid -> {
                                         // Afficher la tâche dans l'interface
-                                        View taskView = addTaskToUI(title, startDate, endDate, location, description, creatorName.get());
+                                        View taskView = addTaskToUI(title,  endDate, location, description, creatorName.get());
                                         taskView.setTag(taskId);
                                         showToast("Public Task Added");
                                     })
@@ -289,12 +285,12 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                         .addOnFailureListener(e -> showToast("Error fetching user name: " + e.getMessage()));
             } else {
                 // Si le nom est déjà disponible dans Firebase Auth, on utilise ce nom
-                PublicTaskModel publicTask = new PublicTaskModel(taskId, title, startDate, endDate, userId, location, description, creatorName.get());
+                PublicTaskModel publicTask = new PublicTaskModel(taskId, title, endDate, userId, location, description, creatorName.get());
                 // Enregistrer la tâche dans Firestore
                 db.collection("public_tasks").document(taskId).set(publicTask)
                         .addOnSuccessListener(aVoid -> {
                             // Afficher la tâche dans l'interface
-                            View taskView = addTaskToUI(title, startDate, endDate, location, description, creatorName.get());
+                            View taskView = addTaskToUI(title, endDate, location, description, creatorName.get());
                             taskView.setTag(taskId);
                             showToast("Public Task Added");
                         })
@@ -306,20 +302,16 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
     }
 
 
-    private boolean validateInput(EditText titleField, TextView startDateField, TextView endDateField, TextView locationField,EditText publicTaskDescription) {
+    private boolean validateInput(EditText titleField, TextView endDateField, TextView locationField,EditText publicTaskDescription) {
         String title = titleField.getText().toString().trim();
         String description = publicTaskDescription.getText().toString().trim();  // Récupérer la description
-        String startDateStr = startDateField.getText().toString().trim();
         String endDateStr = endDateField.getText().toString().trim();
         String location = locationField.getText().toString().trim();
 
         if (title.isEmpty()) {
             showToast("Please enter a Title");
             return false;
-        }
-        if (startDateStr.isEmpty()) {
-            showToast("Please select a Start Date and Time");
-            return false;
+
         }
         if (endDateStr.isEmpty()) {
             showToast("Please select an End Date and Time");
@@ -335,33 +327,8 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
             return false;
         }
 
-        return isValidDateRange(startDateStr, endDateStr);
+        return true;
     }
-
-    // Méthode modifiée de validation de la plage de dates
-    private boolean isValidDateRange(String startDateStr, String endDateStr) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-        try {
-            Date startDate = dateFormat.parse(startDateStr);
-            Date endDate = dateFormat.parse(endDateStr);
-
-            // Vérification si la date de début est avant la date de fin
-            if (startDate != null && endDate != null) {
-                if (startDate.after(endDate)) {
-                    showToast("Start Date cannot be after End Date");
-                    return false;  // Si la date de début est après la date de fin, retournera false
-                }
-                return true;
-            } else {
-                showToast("Invalid date format");
-                return false;
-            }
-        } catch (ParseException e) {
-            showToast("Invalid date format");
-            return false;
-        }
-    }
-
 
 
     private void showToast(String message) {
@@ -394,7 +361,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         datePickerDialog.show();
     }
 
-    private View addTaskToUI(String title, String startDate, String endDate, String location, String description,String creatorName) {
+    private View addTaskToUI(String title, String endDate, String location, String description,String creatorName) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_public_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
@@ -407,7 +374,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
 
 
         taskTitle.setText(title);
-        taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
+        taskDates.setText("Event Date: " + endDate);
         taskLocation.setText("Location: " + location);
 
         // Mettre à jour le nom du créateur
@@ -490,15 +457,13 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         // Récupération des éléments du formulaire
         EditText editTaskTitle = dialogView.findViewById(R.id.editpublicTasktitle);
         EditText editPublicTaskDescription = dialogView.findViewById(R.id.editPublicTaskDescription);
-        TextView editStartDate = dialogView.findViewById(R.id.textViewPublicTaskStartDate);
-        TextView editEndDate = dialogView.findViewById(R.id.textViewPublicTaskEndDate);
+        TextView editEndDate = dialogView.findViewById(R.id.textViewPublicTaskDeadline);
         TextView editTaskLocation = dialogView.findViewById(R.id.location);
         String creatorName = auth.getCurrentUser().getDisplayName();
         TextView map = dialogView.findViewById(R.id.locationTextView);
 
         // Remplir les champs avec les valeurs actuelles
         editTaskTitle.setText(currentTitle);
-        editStartDate.setText(currentDates.split("\n")[0].replace("Start: ", ""));
         editEndDate.setText(currentDates.split("\n")[1].replace("End: ", ""));
         editTaskLocation.setText(currentLocation);
         editPublicTaskDescription.setText(currentDescription);
@@ -522,17 +487,16 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String title = editTaskTitle.getText().toString().trim();
             String description = editPublicTaskDescription.getText().toString().trim();
-            String startDate = editStartDate.getText().toString().trim();
             String endDate = editEndDate.getText().toString().trim();
             String location = editTaskLocation.getText().toString().trim();
 
             // Validation des données
-            if (validateInput(editTaskTitle, editStartDate, editEndDate, editTaskLocation,editPublicTaskDescription)) {
+            if (validateInput(editTaskTitle, editEndDate, editTaskLocation,editPublicTaskDescription)) {
                 // Si tout est valide, on met à jour Firestore et l'interface utilisateur
                 String taskId = (String) taskView.getTag();  // Récupérer l'ID de la tâche à partir du tag
 
                 // Création du modèle de la tâche mise à jour
-                PublicTaskModel updatedTask = new PublicTaskModel(taskId, title, startDate, endDate, auth.getCurrentUser().getUid(), location,description,creatorName);
+                PublicTaskModel updatedTask = new PublicTaskModel(taskId, title, endDate, auth.getCurrentUser().getUid(), location,description,creatorName);
                 // Mettre à jour la tâche dans Firestore
                 db.collection("public_tasks").document(taskId).set(updatedTask)
                         .addOnSuccessListener(aVoid -> {
@@ -544,7 +508,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
 
 
                             taskTitle.setText(title);
-                            taskDates.setText("Start: " + startDate + "\nEnd: " + endDate);
+                            taskDates.setText("Event Date: " + endDate);
                             taskLocation.setText(location);
                             taskDescription.setText(description);
 
@@ -559,7 +523,6 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
         });
 
         // Gestion des sélecteurs de date
-        editStartDate.setOnClickListener(v -> showDateTimePicker(editStartDate));
         editEndDate.setOnClickListener(v -> showDateTimePicker(editEndDate));
     }
 

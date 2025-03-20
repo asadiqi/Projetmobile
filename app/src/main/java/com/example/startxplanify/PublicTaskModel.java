@@ -2,8 +2,7 @@ package com.example.startxplanify;
 public class PublicTaskModel {
     private String id;
     private String title;
-    private String startDate;
-    private String endDate;
+    private String eventDate;
     private String userId;
     private String location;
     private String description;
@@ -13,11 +12,10 @@ public class PublicTaskModel {
 
     public PublicTaskModel() {} // Nécessaire pour Firebase
 
-    public PublicTaskModel(String id, String title, String startDate, String endDate, String userId,String location, String description,String creatorName) {
+    public PublicTaskModel(String id, String title,String eventDate, String userId,String location, String description,String creatorName) {
         this.id = id;
         this.title = title;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.eventDate = eventDate;
         this.userId = userId;
         this.location = location;
         this.description = description;
@@ -28,8 +26,7 @@ public class PublicTaskModel {
 
     public String getId() { return id; }
     public String getTitle() { return title; }
-    public String getStartDate() { return startDate; }
-    public String getEndDate() { return endDate; }
+    public String getEndDate() { return eventDate; }
     public String getLocation() { return location; }
     public String getDescription() { return description; }  // Getter pour la description
 

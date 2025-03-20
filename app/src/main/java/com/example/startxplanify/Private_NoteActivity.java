@@ -250,7 +250,7 @@ public class Private_NoteActivity extends AppCompatActivity {
         ImageView optionMenu = taskView.findViewById(R.id.optionMenu);
 
         taskTitle.setText(title);
-        taskDates.setText("Start: " + endDate);
+        taskDates.setText("Deadline: " + endDate);
 
         // If the task is completed, strike-through the title and dates
         if (isCompleted) {
@@ -320,12 +320,10 @@ public class Private_NoteActivity extends AppCompatActivity {
 
         // Extraire les dates actuelles
         String[] dateParts = currentDates.split("\n");
-        String startDate = dateParts.length > 0 ? dateParts[0].replace("Start: ", "").trim() : "";
         String endDate = dateParts.length > 1 ? dateParts[1].replace("End: ", "").trim() : "";
 
         // Pré-remplir les champs du dialogue avec les valeurs actuelles
         editTaskTitle.setText(currentTitle);
-        textViewTaskStartDate.setText(startDate);
         textViewTaskEndDate.setText(endDate);
 
         // Construire le dialogue
@@ -344,7 +342,6 @@ public class Private_NoteActivity extends AppCompatActivity {
             if (validateInput(editTaskTitle, textViewTaskEndDate)) {
                 // Récupérer les nouvelles valeurs
                 String newTitle = editTaskTitle.getText().toString().trim();
-                String newStartDate = textViewTaskStartDate.getText().toString().trim();
                 String newEndDate = textViewTaskEndDate.getText().toString().trim();
 
                 // Récupérer l'ID de la tâche
@@ -352,7 +349,7 @@ public class Private_NoteActivity extends AppCompatActivity {
 
                 // Mettre à jour la tâche dans Firestore
                 db.collection("private_tasks").document(taskId)
-                        .update("title", newTitle, "startDate", newStartDate, "endDate", newEndDate)
+                        .update("title", newTitle,  "endDate", newEndDate)
                         .addOnSuccessListener(aVoid -> {
                             // Mettre à jour les éléments de l'UI avec les nouvelles valeurs
                             ((TextView) taskView.findViewById(R.id.taskTitle)).setText(newTitle);
