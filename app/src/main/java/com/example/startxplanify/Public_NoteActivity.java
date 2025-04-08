@@ -134,13 +134,15 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
                                 String creatorName = public_task.getCreatorName();  // Récupère le nom du créateur depuis le modèle
                                 View taskView = addTaskToUI(
                                         public_task.getTitle(),
-                                        public_task.getEndDate(),
+                                        public_task.getEventDate(),
                                         public_task.getLocation(),
                                         public_task.getDescription(),
                                         creatorName // Passe le nom du créateur à la méthode
                                 );
                                 taskView.setTag(public_task.getId());
                             }
+
+
                         }
                     })
                     .addOnFailureListener(e -> showToast("Error loading tasks"));
@@ -464,7 +466,7 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
 
         // Remplir les champs avec les valeurs actuelles
         editTaskTitle.setText(currentTitle);
-        editEndDate.setText(currentDates.split("\n")[1].replace("End: ", ""));
+        editEndDate.setText(currentDates.split("\n")[1].replace("Event Date: ", ""));
         editTaskLocation.setText(currentLocation);
         editPublicTaskDescription.setText(currentDescription);
         // Redirection vers la carte pour modifier l'adresse

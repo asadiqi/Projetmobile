@@ -26,7 +26,7 @@ public class PublicTaskModel {
 
     public String getId() { return id; }
     public String getTitle() { return title; }
-    public String getEndDate() { return eventDate; }
+    public String getEventDate() { return eventDate; }
     public String getLocation() { return location; }
     public String getDescription() { return description; }  // Getter pour la description
 
