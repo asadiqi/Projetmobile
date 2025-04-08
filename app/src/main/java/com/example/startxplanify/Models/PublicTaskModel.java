@@ -1,4 +1,4 @@
-package com.example.startxplanify;
+package com.example.startxplanify.Models;
 public class PublicTaskModel {
     private String id;
     private String title;

@@ -1,4 +1,4 @@
-package com.example.startxplanify;
+package com.example.startxplanify.Notes_Activity;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
@@ -23,6 +23,11 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.example.startxplanify.MainActivity;
+import com.example.startxplanify.Models.PrivateTaskModel;
+import com.example.startxplanify.Notifications.NotificationHelper;
+import com.example.startxplanify.R;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -184,6 +189,9 @@ public class Private_NoteActivity extends AppCompatActivity {
                         taskView.setTag(taskId);
                         loadUserTasks();
                         showToast("Task Added");
+
+                        // Planifier les notifications après avoir ajouté la tâche
+
                     })
                     .addOnFailureListener(e -> showToast("Error saving task"));
         }
@@ -276,6 +284,11 @@ public class Private_NoteActivity extends AppCompatActivity {
                         if (isChecked) {
                             taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                             taskDates.setPaintFlags(taskDates.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+
+                            // Envoie la notification de tâche terminée
+                            NotificationHelper notificationHelper = new NotificationHelper(Private_NoteActivity.this);
+                            notificationHelper.sendNotification(taskTitle.getText().toString(), "completed");
+
                         } else {
                             taskTitle.setPaintFlags(taskTitle.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
                             taskDates.setPaintFlags(taskDates.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
@@ -416,6 +429,9 @@ public class Private_NoteActivity extends AppCompatActivity {
         finish();
         showToast("You are logged out");
     }
+
+
+
 }
 
 

@@ -8,6 +8,11 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
 
 
     <application
@@ -21,10 +26,6 @@
         android:theme="@style/Theme.StartxPlanify"
         tools:targetApi="31">
 
-        <activity
-            android:name=".ok"
-            android:exported="false"
-            android:configChanges="orientation|screenSize" />
 
 
         <activity
@@ -33,21 +34,21 @@
             android:configChanges="orientation|screenSize" />
 
         <activity
-            android:name=".Public_NoteActivity"
+            android:name=".Notes_Activity.Public_NoteActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize" />
 
         <activity
-            android:name=".Private_NoteActivity"
+            android:name=".Notes_Activity.Private_NoteActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize" />
 
         <activity
-            android:name="SignUpActivity"
+            android:name=".Signup_and_Login.SignUpActivity"
             android:exported="false" />
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".Signup_and_Login.LoginActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -63,7 +64,12 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/Google_Api_key"/>
 
-      </application>
+
+        <receiver android:name=".Notifications.NotificationReceiver" android:exported="false"/>
+
+
+
+    </application>
 
 </manifest>
 

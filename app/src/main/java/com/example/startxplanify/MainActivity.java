@@ -11,6 +11,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.startxplanify.Notes_Activity.Private_NoteActivity;
+import com.example.startxplanify.Signup_and_Login.LoginActivity;
+
 public class MainActivity extends AppCompatActivity {
 
 
