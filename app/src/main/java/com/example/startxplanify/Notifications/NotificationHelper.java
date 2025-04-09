@@ -37,10 +37,11 @@ public class NotificationHelper {
     }
 
     @SuppressLint("ScheduleExactAlarm")
-    public void scheduleReminderNotification(String taskTitle, long triggerTime, String type) {
+    public void scheduleReminderNotification(String taskTitle, long triggerTime, String type, String userId) {
         Intent intent = new Intent(context, NotificationReceiver.class);
         intent.putExtra("task_title", taskTitle);
         intent.putExtra("notification_type", type);
+        intent.putExtra("task_user_id", userId); // Ajout de l'ID utilisateur
 
         int requestCode = (taskTitle + type + triggerTime).hashCode();
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
@@ -55,14 +56,13 @@ public class NotificationHelper {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (alarmManager.canScheduleExactAlarms()) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
-                } else {
-                    // Facultatif : alerte visuelle ou redirection vers les paramètres
                 }
             } else {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
             }
         }
     }
+
 
     public void sendNotification(String taskTitle, String notificationType) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)

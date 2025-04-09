@@ -90,8 +90,6 @@ public class Private_NoteActivity extends AppCompatActivity {
         // Gestion du clic sur le bouton Ajouter une tâche
         buttonAddNote.setOnClickListener(v -> showAddPrivateTaskDialog());
 
-
-
     }
 
     private void setupDrawerAndNavigation() {
@@ -228,16 +226,13 @@ public class Private_NoteActivity extends AppCompatActivity {
                                 long oneDayBefore = timeInMillis - 24 * 60 * 60_000;
 
                                 if (oneDayBefore > now) {
-                                    helper.scheduleReminderNotification(taskTitle, oneDayBefore, "reminder_24h");
-                                    showToast("Notification prévue à J-1");
+                                    helper.scheduleReminderNotification(taskTitle, oneDayBefore, "reminder_24h", userId);                                    showToast("Notification prévue à J-1");
                                 }
                                 if (oneHourBefore > now) {
-                                    helper.scheduleReminderNotification(taskTitle, oneHourBefore, "reminder_1h");
-                                    showToast("Notification prévue à H-1");
+                                    helper.scheduleReminderNotification(taskTitle, oneHourBefore, "reminder_1h", userId);                                    showToast("Notification prévue à H-1");
                                 }
                                 if (oneMinuteBefore > now) {
-                                    helper.scheduleReminderNotification(taskTitle, oneMinuteBefore, "reminder_1m");
-                                    showToast("Notification prévue à M-1");
+                                    helper.scheduleReminderNotification(taskTitle, oneMinuteBefore, "reminder_1m", userId);                                    showToast("Notification prévue à M-1");
                                 }
 
                             } else {
