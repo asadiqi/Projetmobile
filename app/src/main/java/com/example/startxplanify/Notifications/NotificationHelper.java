@@ -1,7 +1,7 @@
 package com.example.startxplanify.Notifications;
 
 import android.annotation.SuppressLint;
-import android.app.Notification;
+import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -15,11 +15,13 @@ import com.example.startxplanify.R;
 
 public class NotificationHelper {
 
-    private Context context;
+    private final Context context;
     private static final String CHANNEL_ID = "task_notifications";
+    private final NotificationManager notificationManager;
 
     public NotificationHelper(Context context) {
         this.context = context;
+        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         createNotificationChannel();
     }
 
@@ -30,96 +32,66 @@ public class NotificationHelper {
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
-
-            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
     }
 
-    // Planifier la notification à 1 minute avant
     @SuppressLint("ScheduleExactAlarm")
-    public void scheduleReminder1mNotification(String taskTitle, long triggerTime) {
+    public void scheduleReminderNotification(String taskTitle, long triggerTime, String type) {
         Intent intent = new Intent(context, NotificationReceiver.class);
         intent.putExtra("task_title", taskTitle);
-        intent.putExtra("notification_type", "reminder_1m");
+        intent.putExtra("notification_type", type);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        android.app.AlarmManager alarmManager = (android.app.AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setExact(android.app.AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
-    }
+        int requestCode = (taskTitle + type + triggerTime).hashCode();
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
-
-    // Planifier la notification à 24 heures avant
-    @SuppressLint("ScheduleExactAlarm")
-    public void scheduleReminder24hNotification(String taskTitle, long triggerTime) {
-        Intent intent = new Intent(context, NotificationReceiver.class);
-        intent.putExtra("task_title", taskTitle);
-        intent.putExtra("notification_type", "reminder_24h");
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        android.app.AlarmManager alarmManager = (android.app.AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setExact(android.app.AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
-    }
-
-    // Planifier la notification à 1 heure avant
-    @SuppressLint("ScheduleExactAlarm")
-    public void scheduleReminder1hNotification(String taskTitle, long triggerTime) {
-        Intent intent = new Intent(context, NotificationReceiver.class);
-        intent.putExtra("task_title", taskTitle);
-        intent.putExtra("notification_type", "reminder_1h");
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        android.app.AlarmManager alarmManager = (android.app.AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setExact(android.app.AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
-    }
-
-    // Envoyer une notification lorsque la tâche est terminée
-    public void sendCompletedNotification(String taskTitle) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Task Completed!")
-                .setContentText("The task '" + taskTitle + "' has been completed. Congratulations!")
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
-
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(0, builder.build());
-    }
-
-    // Envoyer un rappel 24 heures avant
-    public void sendReminder24hNotification(String taskTitle) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Reminder: Task Deadline Approaching!")
-                .setContentText("There are only 24 hours left to complete the task '" + taskTitle + "'. Don't forget to finish it!")
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
-
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, builder.build());
-    }
-
-    // Envoyer un rappel 1 heure avant
-    public void sendReminder1hNotification(String taskTitle) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Last Chance: Task Ending Soon!")
-                .setContentText("Only 1 hour left to finish the task '" + taskTitle + "'. Hurry up!")
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
-
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(2, builder.build());
-    }
-
-    public void sendNotification(String taskTitle, String notificationType) {
-        if (notificationType.equals("completed")) {
-            sendCompletedNotification(taskTitle);
-        } else if (notificationType.equals("reminder_24h")) {
-            sendReminder24hNotification(taskTitle);
-        } else if (notificationType.equals("reminder_1h")) {
-            sendReminder1hNotification(taskTitle);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+                } else {
+                    // Facultatif : alerte visuelle ou redirection vers les paramètres
+                }
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+            }
         }
     }
 
+    public void sendNotification(String taskTitle, String notificationType) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true);
+
+        switch (notificationType) {
+            case "completed":
+                builder.setContentTitle("Task Completed!")
+                        .setContentText("The task '" + taskTitle + "' has been completed.");
+                break;
+            case "reminder_24h":
+                builder.setContentTitle("Reminder: 24h Left")
+                        .setContentText("Only 24 hours left for '" + taskTitle + "'.");
+                break;
+            case "reminder_1h":
+                builder.setContentTitle("1 Hour Reminder")
+                        .setContentText("1 hour left to complete '" + taskTitle + "'.");
+                break;
+            case "reminder_1m":
+                builder.setContentTitle("1 Minute Left!")
+                        .setContentText("Hurry up! '" + taskTitle + "' is due in 1 minute.");
+                break;
+            default:
+                return;
+        }
+
+        int notificationId = (taskTitle + notificationType).hashCode();
+        notificationManager.notify(notificationId, builder.build());
+    }
 }

@@ -1,12 +1,17 @@
 package com.example.startxplanify.Notes_Activity;
 
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
+import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Paint;
 import android.icu.util.Calendar;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -22,11 +27,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.startxplanify.MainActivity;
 import com.example.startxplanify.Models.PrivateTaskModel;
 import com.example.startxplanify.Notifications.NotificationHelper;
+import com.example.startxplanify.Notifications.NotificationReceiver;
 import com.example.startxplanify.R;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -39,6 +47,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import android.content.Context;
+
 
 public class Private_NoteActivity extends AppCompatActivity {
 
@@ -55,6 +65,15 @@ public class Private_NoteActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                startActivity(intent);
+            }
+        }
+
+
         // Initialisation des vues
         buttonAddNote = findViewById(R.id.button_addNote);
         taskContainer = findViewById(R.id.taskContainer);
@@ -70,6 +89,9 @@ public class Private_NoteActivity extends AppCompatActivity {
 
         // Gestion du clic sur le bouton Ajouter une tâche
         buttonAddNote.setOnClickListener(v -> showAddPrivateTaskDialog());
+
+
+
     }
 
     private void setupDrawerAndNavigation() {
@@ -190,7 +212,41 @@ public class Private_NoteActivity extends AppCompatActivity {
                         loadUserTasks();
                         showToast("Task Added");
 
-                        // Planifier les notifications après avoir ajouté la tâche
+
+                        // Convertir la date de fin en timestamp et planifier la notification
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                        try {
+                            Date date = dateFormat.parse(endDate);
+                            if (date != null) {
+                                long timeInMillis = date.getTime();
+                                long now = System.currentTimeMillis();
+
+                                NotificationHelper helper = new NotificationHelper(this);
+
+                                long oneMinuteBefore = timeInMillis - 60_000;
+                                long oneHourBefore = timeInMillis - 60 * 60_000;
+                                long oneDayBefore = timeInMillis - 24 * 60 * 60_000;
+
+                                if (oneDayBefore > now) {
+                                    helper.scheduleReminderNotification(taskTitle, oneDayBefore, "reminder_24h");
+                                    showToast("Notification prévue à J-1");
+                                }
+                                if (oneHourBefore > now) {
+                                    helper.scheduleReminderNotification(taskTitle, oneHourBefore, "reminder_1h");
+                                    showToast("Notification prévue à H-1");
+                                }
+                                if (oneMinuteBefore > now) {
+                                    helper.scheduleReminderNotification(taskTitle, oneMinuteBefore, "reminder_1m");
+                                    showToast("Notification prévue à M-1");
+                                }
+
+                            } else {
+                                showToast("Erreur : date nulle");
+                            }
+                        } catch (ParseException e) {
+                            showToast("Format de date invalide. Utilisez dd/MM/yyyy HH:mm");
+                            e.printStackTrace();
+                        }
 
                     })
                     .addOnFailureListener(e -> showToast("Error saving task"));
