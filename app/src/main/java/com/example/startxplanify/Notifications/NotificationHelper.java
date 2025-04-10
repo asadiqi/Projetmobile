@@ -35,7 +35,6 @@ public class NotificationHelper {
             notificationManager.createNotificationChannel(channel);
         }
     }
-
     @SuppressLint("ScheduleExactAlarm")
     public void scheduleReminderNotification(String taskTitle, long triggerTime, String type, String userId) {
         Intent intent = new Intent(context, NotificationReceiver.class);
@@ -66,30 +65,31 @@ public class NotificationHelper {
 
     public void sendNotification(String taskTitle, String notificationType) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.ic_notification1)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true);
 
         switch (notificationType) {
             case "completed":
-                builder.setContentTitle("Task Completed!")
-                        .setContentText("The task '" + taskTitle + "' has been completed.");
+                builder.setContentTitle("Task Completed! 🎉")
+                        .setContentText("Congratulations! The task '" + taskTitle + "' has been successfully completed. Well done!");
                 break;
             case "reminder_24h":
-                builder.setContentTitle("Reminder: 24h Left")
-                        .setContentText("Only 24 hours left for '" + taskTitle + "'.");
+                builder.setContentTitle("⏳ 24-Hour Reminder")
+                        .setContentText("Just a friendly reminder: Only 24 hours left to complete the task '" + taskTitle + "'. Time to wrap it up!");
                 break;
             case "reminder_1h":
-                builder.setContentTitle("1 Hour Reminder")
-                        .setContentText("1 hour left to complete '" + taskTitle + "'.");
+                builder.setContentTitle("⏰ 1-Hour Reminder")
+                        .setContentText("You’re almost there! Only 1 hour left to finish '" + taskTitle + "'. Let’s do this!");
                 break;
             case "reminder_1m":
-                builder.setContentTitle("1 Minute Left!")
-                        .setContentText("Hurry up! '" + taskTitle + "' is due in 1 minute.");
+                builder.setContentTitle("⚡ 1-Minute Reminder!")
+                        .setContentText("Final countdown! Just 1 minute left to complete '" + taskTitle + "'. Hurry up!");
                 break;
             default:
                 return;
         }
+
 
         int notificationId = (taskTitle + notificationType).hashCode();
         notificationManager.notify(notificationId, builder.build());

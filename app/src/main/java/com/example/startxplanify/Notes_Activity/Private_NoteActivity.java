@@ -48,6 +48,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import android.content.Context;
+import android.app.NotificationManager;
+import android.app.AlarmManager;
+import android.content.Context;
+
 
 
 public class Private_NoteActivity extends AppCompatActivity {
@@ -201,8 +205,8 @@ public class Private_NoteActivity extends AppCompatActivity {
         if (user != null) {
             String userId = user.getUid();
             String taskId = db.collection("private_tasks").document().getId();
-
-            PrivateTaskModel task = new PrivateTaskModel(taskId, taskTitle, endDate, userId,false);
+            int notificationId = (int) System.currentTimeMillis();
+            PrivateTaskModel task = new PrivateTaskModel(taskId, taskTitle, endDate, userId,false,notificationId);
             db.collection("private_tasks").document(taskId).set(task)
                     .addOnSuccessListener(aVoid -> {
                         View taskView = addTaskToUI(taskTitle, endDate, false,taskId);  // false pour indiquer qu'elle n'est pas terminée
@@ -226,13 +230,13 @@ public class Private_NoteActivity extends AppCompatActivity {
                                 long oneDayBefore = timeInMillis - 24 * 60 * 60_000;
 
                                 if (oneDayBefore > now) {
-                                    helper.scheduleReminderNotification(taskTitle, oneDayBefore, "reminder_24h", userId);                                    showToast("Notification prévue à J-1");
+                                    helper.scheduleReminderNotification(taskTitle, oneDayBefore, "reminder_24h", userId);
                                 }
                                 if (oneHourBefore > now) {
-                                    helper.scheduleReminderNotification(taskTitle, oneHourBefore, "reminder_1h", userId);                                    showToast("Notification prévue à H-1");
+                                    helper.scheduleReminderNotification(taskTitle, oneHourBefore, "reminder_1h", userId);
                                 }
                                 if (oneMinuteBefore > now) {
-                                    helper.scheduleReminderNotification(taskTitle, oneMinuteBefore, "reminder_1m", userId);                                    showToast("Notification prévue à M-1");
+                                    helper.scheduleReminderNotification(taskTitle, oneMinuteBefore, "reminder_1m", userId);                              
                                 }
 
                             } else {
@@ -441,7 +445,7 @@ public class Private_NoteActivity extends AppCompatActivity {
 
     // Ajouter le message de confirmation personnalisé pour la suppression de tâche
     private void confirmAndDeleteTask(View taskView) {
-        String taskId = (String) taskView.getTag();  // Récupérer l'ID stocké dans le tag
+        String taskId = (String) taskView.getTag();
         TextView taskTitleTextView = taskView.findViewById(R.id.taskTitle);
         String taskTitle = taskTitleTextView.getText().toString();
 
@@ -449,21 +453,84 @@ public class Private_NoteActivity extends AppCompatActivity {
                 .setTitle("Confirm Task Deletion")
                 .setMessage("Are you sure you want to delete the task: '" + taskTitle + "'? This action cannot be undone.")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // Supprimer la tâche de Firestore
+
                     db.collection("private_tasks").document(taskId)
-                            .delete()
-                            .addOnSuccessListener(aVoid -> {
-                                // Supprimer la tâche de l'interface utilisateur
-                                taskContainer.removeView(taskView);
-                                Toast.makeText(Private_NoteActivity.this, "Task Deleted", Toast.LENGTH_SHORT).show();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(Private_NoteActivity.this, "Error deleting task", Toast.LENGTH_SHORT).show();
+                            .get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    PrivateTaskModel task = documentSnapshot.toObject(PrivateTaskModel.class);
+
+                                    if (task != null) {
+                                        int notifId = task.getNotificationId();
+                                        String endDate = task.getEndDate();
+                                        String userId = task.getUserId();
+
+                                        // 1. Annuler les notifications affichées
+                                        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                                        manager.cancel(notifId + 1); // J-1
+                                        manager.cancel(notifId + 2); // H-1
+                                        manager.cancel(notifId + 3); // M-1
+
+                                        // 2. Annuler les AlarmManager programmés
+                                        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+                                        if (alarmManager != null) {
+                                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                                            try {
+                                                Date date = dateFormat.parse(endDate);
+                                                if (date != null) {
+                                                    long timeInMillis = date.getTime();
+
+                                                    long oneDayBefore = timeInMillis - 24 * 60 * 60_000;
+                                                    long oneHourBefore = timeInMillis - 60 * 60_000;
+                                                    long oneMinuteBefore = timeInMillis - 60_000;
+
+                                                    cancelAlarm(alarmManager, taskTitle, "reminder_24h", oneDayBefore, userId);
+                                                    cancelAlarm(alarmManager, taskTitle, "reminder_1h", oneHourBefore, userId);
+                                                    cancelAlarm(alarmManager, taskTitle, "reminder_1m", oneMinuteBefore, userId);
+                                                }
+                                            } catch (ParseException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+
+                                    // 3. Supprimer la tâche
+                                    db.collection("private_tasks").document(taskId)
+                                            .delete()
+                                            .addOnSuccessListener(aVoid -> {
+                                                taskContainer.removeView(taskView);
+                                                Toast.makeText(Private_NoteActivity.this, "Task Deleted", Toast.LENGTH_SHORT).show();
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Toast.makeText(Private_NoteActivity.this, "Error deleting task", Toast.LENGTH_SHORT).show();
+                                            });
+                                }
                             });
+
                 })
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
     }
+
+    private void cancelAlarm(AlarmManager alarmManager, String taskTitle, String type, long triggerTime, String userId) {
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        intent.putExtra("task_title", taskTitle);
+        intent.putExtra("notification_type", type);
+        intent.putExtra("task_user_id", userId);
+
+        int requestCode = (taskTitle + type + triggerTime).hashCode();
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        alarmManager.cancel(pendingIntent);
+    }
+
+
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
