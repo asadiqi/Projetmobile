@@ -43,6 +43,7 @@
         <activity
             android:name=".Notes_Activity.Private_NoteActivity"
             android:exported="false"
+            android:launchMode="singleTask"
             android:configChanges="orientation|screenSize" />
 
         <activity

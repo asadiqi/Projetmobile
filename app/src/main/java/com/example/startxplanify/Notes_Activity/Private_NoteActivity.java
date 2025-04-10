@@ -77,6 +77,10 @@ public class Private_NoteActivity extends AppCompatActivity {
             }
         }
 
+        Intent intent = getIntent();
+        String taskTitle = intent.getStringExtra("task_title");
+
+
 
         // Initialisation des vues
         buttonAddNote = findViewById(R.id.button_addNote);

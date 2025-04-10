@@ -11,6 +11,7 @@ import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 
+import com.example.startxplanify.Notes_Activity.Private_NoteActivity;
 import com.example.startxplanify.R;
 
 public class NotificationHelper {
@@ -64,10 +65,23 @@ public class NotificationHelper {
 
 
     public void sendNotification(String taskTitle, String notificationType) {
+        Intent intent = new Intent(context, Private_NoteActivity.class);
+        // Ajoutez les informations pertinentes dans l'intent
+        intent.putExtra("task_title", taskTitle);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Crée une nouvelle instance de l'activité
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification1)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent); // Ajoutez ce PendingIntent à la notification
 
         switch (notificationType) {
             case "completed":
@@ -90,8 +104,8 @@ public class NotificationHelper {
                 return;
         }
 
-
         int notificationId = (taskTitle + notificationType).hashCode();
         notificationManager.notify(notificationId, builder.build());
     }
+
 }
