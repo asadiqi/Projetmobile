@@ -19,13 +19,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.example.startxplanify.AddressUpdateListener;
 import com.example.startxplanify.MainActivity;
 import com.example.startxplanify.Map;
 import com.example.startxplanify.Models.PublicTaskModel;
@@ -41,7 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Public_NoteActivity extends AppCompatActivity implements AddressUpdateListener {
+public class Public_NoteActivity extends BaseNoteActivity {
 
 
     private DrawerLayout drawerLayout;
@@ -82,32 +78,6 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
 
     }
 
-    private void setupDrawerAndNavigation() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        drawerLayout = findViewById(R.id.drawer_layout);
-        navigationView = findViewById(R.id.nav_view);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open_drawer, R.string.close_drawer);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        navigationView.setNavigationItemSelectedListener(item -> {
-            handleNavigationItemClick(item.getItemId());
-            return true;
-        });
-    }
-
-    private void handleNavigationItemClick(int itemId) {
-        if (itemId == R.id.nav_home) {
-            showToast("Home sélectionné");
-        } else if (itemId == R.id.nav_settings) {
-            showToast("Settings sélectionné");
-        } else if (itemId == R.id.nav_logout) {
-            handleLogout();
-        }
-        drawerLayout.closeDrawers();
-    }
 
     private void setupNightModePreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
@@ -562,18 +532,6 @@ public class Public_NoteActivity extends AppCompatActivity implements AddressUpd
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
-    }
-
-    private void handleLogout() {
-        SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("is_logged_in", false);
-        editor.apply();
-
-        Intent intent = new Intent(Public_NoteActivity.this, MainActivity.class);
-        startActivity(intent);
-        finish();
-        showToast("You are logged out");
     }
 
 

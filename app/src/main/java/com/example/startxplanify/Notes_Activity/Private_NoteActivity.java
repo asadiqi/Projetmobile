@@ -6,7 +6,6 @@ import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Paint;
 import android.icu.util.Calendar;
 import android.os.Build;
@@ -23,12 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.startxplanify.MainActivity;
@@ -49,12 +43,9 @@ import java.util.Date;
 import java.util.Locale;
 import android.content.Context;
 import android.app.NotificationManager;
-import android.app.AlarmManager;
-import android.content.Context;
 
 
-
-public class Private_NoteActivity extends AppCompatActivity {
+public class Private_NoteActivity extends BaseNoteActivity {
 
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -78,9 +69,6 @@ public class Private_NoteActivity extends AppCompatActivity {
         }
 
         Intent intent = getIntent();
-        String taskTitle = intent.getStringExtra("task_title");
-
-
 
         // Initialisation des vues
         buttonAddNote = findViewById(R.id.button_addNote);
@@ -100,39 +88,10 @@ public class Private_NoteActivity extends AppCompatActivity {
 
     }
 
-    private void setupDrawerAndNavigation() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    @Override
+    public void onAddressUpdated(String address) {
 
-        drawerLayout = findViewById(R.id.drawer_layout);
-        navigationView = findViewById(R.id.nav_view);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open_drawer, R.string.close_drawer);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        navigationView.setNavigationItemSelectedListener(item -> {
-            handleNavigationItemClick(item.getItemId());
-            return true;
-        });
     }
-
-    private void handleNavigationItemClick(int itemId) {
-        if (itemId == R.id.nav_home) {
-
-            showToast("Home sélectionné");
-        } else if (itemId == R.id.nav_settings) {
-            showToast("Settings sélectionné");
-        }else if (itemId == R.id.nav_announcements) {
-
-            Intent intent = new Intent(Private_NoteActivity.this, Public_NoteActivity.class);
-            startActivity(intent);
-            finish();
-        }else if (itemId == R.id.nav_logout) {
-            handleLogout();
-        }
-        drawerLayout.closeDrawers();
-    }
-
 
     private void setupNightModePreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
