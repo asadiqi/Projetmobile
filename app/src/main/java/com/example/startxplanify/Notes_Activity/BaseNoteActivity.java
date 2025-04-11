@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.example.startxplanify.About;
 import com.example.startxplanify.MainActivity;
 import com.example.startxplanify.R;
 import com.google.android.material.navigation.NavigationView;
@@ -52,6 +53,11 @@ public abstract class BaseNoteActivity extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
         }
+        else if (itemId == R.id.nav_about) {
+            Intent intent = new Intent(this, About.class);
+            startActivity(intent);
+        }
+
         else if (itemId == R.id.nav_settings) {
             Toast.makeText(this, "Settings sélectionné", Toast.LENGTH_SHORT).show();
         } else if (itemId == R.id.nav_logout) {
