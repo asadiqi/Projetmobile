@@ -3,11 +3,6 @@
         android:id="@+id/nav_home"
         android:title="🏠  Home"/>
 
-
-    <item
-        android:id="@+id/nav_my_tasks"
-        android:title="📅  My Tasks"/>
-
     <item
         android:id="@+id/nav_announcements"
         android:title="📢  Announcements"/>
@@ -45,6 +40,11 @@
         android:title=" "
         android:enabled="false"/>
 
+    <item
+        android:title=" "
+        android:enabled="false"/>
+
+  
     <item
         android:title=" "
         android:enabled="false"/>
