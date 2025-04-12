@@ -17,7 +17,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
@@ -47,10 +46,8 @@ import android.app.NotificationManager;
 
 public class Private_NoteActivity extends BaseNoteActivity {
 
-    private DrawerLayout drawerLayout;
-    private NavigationView navigationView;
     private Button buttonAddNote;
-    private TextView textViewTaskStartDate, textViewTaskEndDate;
+    private TextView textViewTaskEndDate;
     private LinearLayout taskContainer;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -68,13 +65,11 @@ public class Private_NoteActivity extends BaseNoteActivity {
             }
         }
 
-        Intent intent = getIntent();
 
         // Initialisation des vues
         buttonAddNote = findViewById(R.id.button_addNote);
         taskContainer = findViewById(R.id.taskContainer);
         setupDrawerAndNavigation();
-        setupNightModePreferences();
 
         // Firebase setup
         auth = FirebaseAuth.getInstance();
@@ -93,21 +88,7 @@ public class Private_NoteActivity extends BaseNoteActivity {
 
     }
 
-    private void setupNightModePreferences() {
-        SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
-        boolean isNightMode = sharedPreferences.getBoolean("night_mode", false);
-        AppCompatDelegate.setDefaultNightMode(isNightMode ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
 
-        // Switch pour le mode nuit
-        Switch themeSwitch = findViewById(R.id.switchTheme);
-        themeSwitch.setChecked(isNightMode);
-        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("night_mode", isChecked);
-            editor.apply();
-            AppCompatDelegate.setDefaultNightMode(isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-        });
-    }
 
     private void loadUserTasks() {
         FirebaseUser user = auth.getCurrentUser();
@@ -497,18 +478,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
-    }
-
-    private void handleLogout() {
-        SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("is_logged_in", false);
-        editor.apply();
-
-        Intent intent = new Intent(Private_NoteActivity.this, MainActivity.class);
-        startActivity(intent);
-        finish();
-        showToast("You are logged out");
     }
 
 

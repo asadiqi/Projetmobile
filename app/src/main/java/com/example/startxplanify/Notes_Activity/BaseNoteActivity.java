@@ -13,6 +13,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.startxplanify.About;
 import com.example.startxplanify.MainActivity;
 import com.example.startxplanify.R;
+import com.example.startxplanify.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -59,8 +60,10 @@ public abstract class BaseNoteActivity extends AppCompatActivity {
         }
 
         else if (itemId == R.id.nav_settings) {
-            Toast.makeText(this, "Settings sélectionné", Toast.LENGTH_SHORT).show();
-        } else if (itemId == R.id.nav_logout) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        }
+        else if (itemId == R.id.nav_logout) {
             handleLogout();
         }
         drawerLayout.closeDrawers();

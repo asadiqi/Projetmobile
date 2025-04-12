@@ -14,7 +14,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
@@ -40,8 +39,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Public_NoteActivity extends BaseNoteActivity {
 
 
-    private DrawerLayout drawerLayout;
-    private NavigationView navigationView;
     private Button buttonAddNote;
     private TextView  textViewPublicTaskEndDate;
     private TextView locationTextView; // Déclarez le TextView pour l'adresse complète
@@ -62,7 +59,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         buttonAddNote = findViewById(R.id.button_addNote);
         taskContainer = findViewById(R.id.taskContainer);
         setupDrawerAndNavigation();
-        setupNightModePreferences();
 
         // Firebase setup
         auth = FirebaseAuth.getInstance();
@@ -78,22 +74,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
 
     }
 
-
-    private void setupNightModePreferences() {
-        SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
-        boolean isNightMode = sharedPreferences.getBoolean("night_mode", false);
-        AppCompatDelegate.setDefaultNightMode(isNightMode ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-
-        // Switch pour le mode nuit
-        Switch themeSwitch = findViewById(R.id.switchTheme);
-        themeSwitch.setChecked(isNightMode);
-        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("night_mode", isChecked);
-            editor.apply();
-            AppCompatDelegate.setDefaultNightMode(isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-        });
-    }
 
     private void loadUserTasks() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
