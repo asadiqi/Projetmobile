@@ -68,13 +68,10 @@ public class Private_NoteActivity extends BaseNoteActivity {
         // Firebase setup
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
         // Chargement des tâches
         loadUserTasks();
-
         // Gestion du clic sur le bouton Ajouter une tâche
         buttonAddNote.setOnClickListener(v -> showAddPrivateTaskDialog());
-
     }
     private void loadUserTasks() {
         FirebaseUser user = auth.getCurrentUser();
@@ -214,10 +211,8 @@ public class Private_NoteActivity extends BaseNoteActivity {
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH));
-
         datePickerDialog.show();
     }
-
     private View addTaskToUI(String title, String endDate,boolean isCompleted, String taskId) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_private_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
@@ -226,10 +221,8 @@ public class Private_NoteActivity extends BaseNoteActivity {
         TextView taskDates = taskView.findViewById(R.id.taskDates);
         CheckBox checkBoxCompleted = taskView.findViewById(R.id.checkbox);
         ImageView optionMenu = taskView.findViewById(R.id.optionMenu);
-
         taskTitle.setText(title);
         taskDates.setText("Deadline: " + endDate);
-
         // If the task is completed, strike-through the title and dates
         if (isCompleted) {
             checkBoxCompleted.setChecked(true);
@@ -240,13 +233,11 @@ public class Private_NoteActivity extends BaseNoteActivity {
             taskTitle.setPaintFlags(taskTitle.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
             taskDates.setPaintFlags(taskDates.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
         }
-
         checkBoxCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SharedPreferences sharedPreferences = getSharedPreferences("tasks_pref", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(taskId, isChecked); // Utilise l'ID de la tâche pour garder l'état
             editor.apply();
-
             // Mise à jour de Firestore avec le nouvel état
             db.collection("private_tasks").document(taskId).update("isCompleted", isChecked)
                     .addOnSuccessListener(aVoid -> {
@@ -295,31 +286,24 @@ public class Private_NoteActivity extends BaseNoteActivity {
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates) {
         // Créer une vue pour le dialogue d'édition
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_private_task, null);
-
         // Trouver les éléments de l'interface du dialogue
         EditText editTaskTitle = dialogView.findViewById(R.id.editprivateTasktitle);
         TextView textViewTaskEndDate = dialogView.findViewById(R.id.textViewTaskEndDate);
-
         // Extraire les dates actuelles
         String[] dateParts = currentDates.split("\n");
         String endDate = dateParts.length > 1 ? dateParts[1].replace("End: ", "").trim() : "";
-
         // Pré-remplir les champs du dialogue avec les valeurs actuelles
         editTaskTitle.setText(currentTitle);
         textViewTaskEndDate.setText(endDate);
 
-        // Construire le dialogue
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Modify Task")
                 .setView(dialogView)
                 .setPositiveButton("Save", null)  // On laissera la gestion du bouton Save plus tard
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
-        // Créer l'alertDialog
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
-
-        // Gérer la logique du bouton "Save"
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             if (validateInput(editTaskTitle, textViewTaskEndDate)) {
                 // Récupérer les nouvelles valeurs
@@ -328,7 +312,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
 
                 // Récupérer l'ID de la tâche
                 String taskId = (String) taskView.getTag();  // Récupérer l'ID stocké dans le tag de la vue de la tâche
-
                 // Mettre à jour la tâche dans Firestore
                 db.collection("private_tasks").document(taskId)
                         .update("title", newTitle,  "endDate", newEndDate)
@@ -352,12 +335,8 @@ public class Private_NoteActivity extends BaseNoteActivity {
                 alertDialog.dismiss();
             }
         });
-
-        // Ajouter des listeners pour les dates de début et de fin
         textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
     }
-
-    // Ajouter le message de confirmation personnalisé pour la suppression de tâche
     private void confirmAndDeleteTask(View taskView) {
         String taskId = (String) taskView.getTag();
         TextView taskTitleTextView = taskView.findViewById(R.id.taskTitle);
@@ -367,18 +346,15 @@ public class Private_NoteActivity extends BaseNoteActivity {
                 .setTitle("Confirm Task Deletion")
                 .setMessage("Are you sure you want to delete the task: '" + taskTitle + "'? This action cannot be undone.")
                 .setPositiveButton("Yes", (dialog, which) -> {
-
                     db.collection("private_tasks").document(taskId)
                             .get()
                             .addOnSuccessListener(documentSnapshot -> {
                                 if (documentSnapshot.exists()) {
                                     PrivateTaskModel task = documentSnapshot.toObject(PrivateTaskModel.class);
-
                                     if (task != null) {
                                         int notifId = task.getNotificationId();
                                         String endDate = task.getEndDate();
                                         String userId = task.getUserId();
-
                                         // 1. Annuler les notifications affichées
                                         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                                         manager.cancel(notifId + 1); // J-1
@@ -425,7 +401,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
     }
-
     private void cancelAlarm(AlarmManager alarmManager, String taskTitle, String type, long triggerTime, String userId) {
         Intent intent = new Intent(this, NotificationReceiver.class);
         intent.putExtra("task_title", taskTitle);
@@ -439,10 +414,8 @@ public class Private_NoteActivity extends BaseNoteActivity {
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-
         alarmManager.cancel(pendingIntent);
     }
-
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
