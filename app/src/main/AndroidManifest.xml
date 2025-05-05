@@ -30,19 +30,19 @@
 
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".Main.SettingsActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize" />
 
 
 
         <activity
-            android:name=".About"
+            android:name=".Main.About"
             android:exported="false"
             android:configChanges="orientation|screenSize" />
 
         <activity
-            android:name=".Map"
+            android:name=".Main.Map"
             android:exported="false"
             android:configChanges="orientation|screenSize" />
 
@@ -65,7 +65,7 @@
             android:name=".Signup_and_Login.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".Main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

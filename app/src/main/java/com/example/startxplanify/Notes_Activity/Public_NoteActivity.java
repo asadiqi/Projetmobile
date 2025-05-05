@@ -18,14 +18,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.example.startxplanify.MainActivity;
-import com.example.startxplanify.Map;
+import com.example.startxplanify.Main.Map;
 import com.example.startxplanify.Models.PublicTaskModel;
 import com.example.startxplanify.R;
-import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;

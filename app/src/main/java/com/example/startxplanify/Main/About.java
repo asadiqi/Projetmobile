@@ -1,10 +1,12 @@
-package com.example.startxplanify;
+package com.example.startxplanify.Main;
 
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.startxplanify.R;
 
 public class About extends AppCompatActivity {
 

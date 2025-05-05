@@ -1,4 +1,4 @@
-package com.example.startxplanify;
+package com.example.startxplanify.Main;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -6,6 +6,8 @@ import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+
+import com.example.startxplanify.R;
 
 public class SettingsActivity extends AppCompatActivity {
 
