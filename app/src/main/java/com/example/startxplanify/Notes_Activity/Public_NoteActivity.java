@@ -46,24 +46,24 @@ public class Public_NoteActivity extends BaseNoteActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
 
-        // Initialisation des vues
+        initViews();
+        initFirebase();
+        setupListeners();
+        loadUserTasks();
+    }
+    private void initViews() {
         buttonAddNote = findViewById(R.id.button_addNote);
         taskContainer = findViewById(R.id.taskContainer);
         setupDrawerAndNavigation();
-
-        // Firebase setup
+    }
+    private void initFirebase() {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        // Gestion du clic sur le bouton Ajouter une tâche
-        buttonAddNote.setOnClickListener(v -> showAddPublicTaskDialog());
-
-        loadUserTasks(); // Chargement des tâches à chaque redémarrage de l'activité
-
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
-        locationTextView =dialogView.findViewById(R.id.location); // Récupérer le TextView pour l'adresse
-
     }
+    private void setupListeners() {
+        buttonAddNote.setOnClickListener(v -> showAddPublicTaskDialog());
+    }
+
     private void loadUserTasks() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
