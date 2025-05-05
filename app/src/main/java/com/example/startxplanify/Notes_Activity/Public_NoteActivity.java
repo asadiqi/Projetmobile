@@ -33,18 +33,13 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Public_NoteActivity extends BaseNoteActivity {
-
-
     private Button buttonAddNote;
     private TextView  textViewPublicTaskEndDate;
     private TextView locationTextView; // Déclarez le TextView pour l'adresse complète
-
     private LinearLayout taskContainer;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-
     private AlertDialog alertDialog;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +64,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         locationTextView =dialogView.findViewById(R.id.location); // Récupérer le TextView pour l'adresse
 
     }
-
-
     private void loadUserTasks() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -90,8 +83,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
                                 );
                                 taskView.setTag(public_task.getId());
                             }
-
-
                         }
                     })
                     .addOnFailureListener(e -> showToast("Error loading tasks"));
@@ -113,7 +104,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
             Intent intent = new Intent(Public_NoteActivity.this, Map.class);
             startActivityForResult(intent, 1);
         });
-
         // Création du dialogue
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Public Task") // Correction du titre
@@ -123,7 +113,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
 
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
-
         // Gestion du bouton "Add" pour éviter la fermeture du dialogue en cas de validation incorrecte
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String title = publicTaskTitle.getText().toString().trim();
@@ -157,7 +146,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
                         location.setText(selectedLocation);
                     }
                 }
-
                 showAlertDialog(selectedLocation);
 
             } else {
@@ -176,7 +164,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
                         location.setText(selectedLocation);
                     }
                 }
-
                 showAlertDialog(selectedLocation);
             } else {
                 showToast("Adresse non reçue !");
@@ -186,8 +173,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         }
     }
 
-
-
     public void showAlertDialog(String selectedLocation) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Adresse : " + selectedLocation)
@@ -196,17 +181,14 @@ public class Public_NoteActivity extends BaseNoteActivity {
                     onAddressUpdated(selectedLocation);
                     dialog.dismiss();
                 });
-
         alertDialog = builder.create();
         alertDialog.show();
     }
-
     private void createPublicTask(String title, String endDate, String location, String description) {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
             String taskId = db.collection("public_tasks").document().getId();
-
             // Récupérer le nom de l'utilisateur depuis Firebase Auth
             AtomicReference<String> creatorName = new AtomicReference<>(user.getDisplayName());
 
@@ -252,7 +234,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         }
     }
 
-
     private boolean validateInput(EditText titleField, TextView endDateField, TextView locationField,EditText publicTaskDescription) {
         String title = titleField.getText().toString().trim();
         String description = publicTaskDescription.getText().toString().trim();  // Récupérer la description
@@ -262,7 +243,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         if (title.isEmpty()) {
             showToast("Please enter a Title");
             return false;
-
         }
         if (endDateStr.isEmpty()) {
             showToast("Please select an End Date and Time");
@@ -272,15 +252,12 @@ public class Public_NoteActivity extends BaseNoteActivity {
             showToast("Please select an adress for this task");
             return false;
         }
-
         if (description.isEmpty()) {
             showToast("Please make a description for this Task");
             return false;
         }
-
         return true;
     }
-
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
@@ -308,10 +285,8 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH));
-
         datePickerDialog.show();
     }
-
     private View addTaskToUI(String title, String endDate, String location, String description,String creatorName) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_public_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
@@ -323,23 +298,18 @@ public class Public_NoteActivity extends BaseNoteActivity {
         ImageView optionMenu = taskView.findViewById(R.id.publicoptionMenu);
         ScrollView descriptionScrollView = taskView.findViewById(R.id.descriptionScrollView); // Ajout de la ScrollView
 
-
         taskTitle.setText(title);
         taskDates.setText("Event Date: " + endDate);
         taskLocation.setText("Location: " + location);
-
         // Mettre à jour le nom du créateur
         creatorNameTextView.setText("Created by: " + creatorName); // Afficher le nom du créateur ici
-
 
         TextView taskDescription = taskView.findViewById(R.id.description);
         taskDescription.setText("Description: " + description);
         descriptionScrollView.setVisibility(View.GONE); // Initialement cachée
-
         // Trouver le bouton dans la vue taskView
         Button openMapButton = taskView.findViewById(R.id.openMapButton);
         openMapButton.setVisibility(View.GONE); // Initialement caché, sera affiché quand la description sera visible
-
         openMapButton.setText("See on map");
         openMapButton.setOnClickListener(v -> {
             String taskLocationText = taskLocation.getText().toString().replace("Location: ", "").trim();  // Extraire la localisation sans le préfixe "Location: "
@@ -347,9 +317,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
             intent.putExtra("taskLocation", taskLocationText); // Passer la localisation à l'activité Map
             startActivityForResult(intent, 2);  // Modifier l'adresse via la carte
         });
-
-
-
         // Lorsque l'on clique sur la tâche, on affiche ou cache la description et le bouton
         taskView.setOnClickListener(v -> {
             if (descriptionScrollView.getVisibility() == View.GONE) {
@@ -360,7 +327,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 openMapButton.setVisibility(View.GONE); // Cacher le bouton "See on map"
             }
         });
-
         // Gérer le clic sur le menu d'options
         optionMenu.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(Public_NoteActivity.this, v);
@@ -385,21 +351,8 @@ public class Public_NoteActivity extends BaseNoteActivity {
 
             popupMenu.show();
         });
-
         taskContainer.addView(taskView, 0);
         return taskView;
-    }
-
-
-    private void updateTaskCompletionStatus(String taskId, boolean isCompleted) {
-        db.collection("public_tasks").document(taskId)
-                .update("isCompleted", isCompleted)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("Task", "Task status updated.");
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Task", "Status update error.", e);
-                });
     }
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates, String currentLocation,String currentDescription) {
         // Chargement du layout du dialogue
@@ -412,7 +365,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         TextView editTaskLocation = dialogView.findViewById(R.id.location);
         String creatorName = auth.getCurrentUser().getDisplayName();
         TextView map = dialogView.findViewById(R.id.locationTextView);
-
         // Remplir les champs avec les valeurs actuelles
         editTaskTitle.setText(currentTitle);
         editEndDate.setText(currentDates.split("\n")[1].replace("Event Date: ", ""));
@@ -456,8 +408,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
                             TextView taskDates = taskView.findViewById(R.id.publictaskDates);
                             TextView taskLocation = taskView.findViewById(R.id.location);
                             TextView taskDescription = taskView.findViewById(R.id.description);
-
-
                             taskTitle.setText(title);
                             taskDates.setText("Event Date: " + endDate);
                             taskLocation.setText(location);
@@ -472,13 +422,9 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 alertDialog.dismiss();
             }
         });
-
         // Gestion des sélecteurs de date
         editEndDate.setOnClickListener(v -> showDateTimePicker(editEndDate));
     }
-
-
-    // Ajouter le message de confirmation personnalisé pour la suppression de tâche
     private void confirmAndDeleteTask(View taskView) {
         // Récupérer l'ID de la tâche à partir du tag de la vue
         String taskId = (String) taskView.getTag();
@@ -504,21 +450,14 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss()) // Fermer la boîte de dialogue sans suppression
                 .show();
     }
-
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
     }
-
-
     @Override
     public void onAddressUpdated(String address) {
         locationTextView.setText(address);
 
     }
-
-
-
-
 }
 
