@@ -29,9 +29,11 @@ public class PublicTaskModel {
     public String getEventDate() { return eventDate; }
     public String getLocation() { return location; }
     public String getDescription() { return description; }  // Getter pour la description
-
     public String getCreatorName() { return creatorName; }  // Getter pour le nom du créateur
 
+    public  String  getUserId(){
+        return userId;
+    }
 
 }
 

@@ -79,7 +79,8 @@ public class Public_NoteActivity extends BaseNoteActivity {
                                         public_task.getEventDate(),
                                         public_task.getLocation(),
                                         public_task.getDescription(),
-                                        creatorName // Passe le nom du créateur à la méthode
+                                        creatorName,
+                                        public_task.getUserId()// Passe le nom du créateur à la méthode
                                 );
                                 taskView.setTag(public_task.getId());
                             }
@@ -209,7 +210,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
                             db.collection("public_tasks").document(taskId).set(publicTask)
                                     .addOnSuccessListener(aVoid -> {
                                         // Afficher la tâche dans l'interface
-                                        View taskView = addTaskToUI(title,  endDate, location, description, creatorName.get());
+                                        View taskView = addTaskToUI(title,  endDate, location, description, creatorName.get(),publicTask.getUserId());
                                         taskView.setTag(taskId);
                                         showToast("Public Task Added");
                                     })
@@ -223,7 +224,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 db.collection("public_tasks").document(taskId).set(publicTask)
                         .addOnSuccessListener(aVoid -> {
                             // Afficher la tâche dans l'interface
-                            View taskView = addTaskToUI(title, endDate, location, description, creatorName.get());
+                            View taskView = addTaskToUI(title, endDate, location, description, creatorName.get(),publicTask.getUserId());
                             taskView.setTag(taskId);
                             showToast("Public Task Added");
                         })
@@ -287,7 +288,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 calendar.get(Calendar.DAY_OF_MONTH));
         datePickerDialog.show();
     }
-    private View addTaskToUI(String title, String endDate, String location, String description,String creatorName) {
+    private View addTaskToUI(String title, String endDate, String location, String description, String creatorName, String taskUserId) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_public_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
@@ -296,64 +297,71 @@ public class Public_NoteActivity extends BaseNoteActivity {
         TextView taskLocation = taskView.findViewById(R.id.location);
         TextView creatorNameTextView = taskView.findViewById(R.id.creatorName);
         ImageView optionMenu = taskView.findViewById(R.id.publicoptionMenu);
-        ScrollView descriptionScrollView = taskView.findViewById(R.id.descriptionScrollView); // Ajout de la ScrollView
+        ScrollView descriptionScrollView = taskView.findViewById(R.id.descriptionScrollView);
 
         taskTitle.setText(title);
         taskDates.setText("Event Date: " + endDate);
         taskLocation.setText("Location: " + location);
-        // Mettre à jour le nom du créateur
-        creatorNameTextView.setText("Created by: " + creatorName); // Afficher le nom du créateur ici
+        creatorNameTextView.setText("Created by: " + creatorName);
 
         TextView taskDescription = taskView.findViewById(R.id.description);
         taskDescription.setText("Description: " + description);
-        descriptionScrollView.setVisibility(View.GONE); // Initialement cachée
-        // Trouver le bouton dans la vue taskView
+        descriptionScrollView.setVisibility(View.GONE);
+
         Button openMapButton = taskView.findViewById(R.id.openMapButton);
-        openMapButton.setVisibility(View.GONE); // Initialement caché, sera affiché quand la description sera visible
+        openMapButton.setVisibility(View.GONE);
         openMapButton.setText("See on map");
         openMapButton.setOnClickListener(v -> {
-            String taskLocationText = taskLocation.getText().toString().replace("Location: ", "").trim();  // Extraire la localisation sans le préfixe "Location: "
+            String taskLocationText = taskLocation.getText().toString().replace("Location: ", "").trim();
             Intent intent = new Intent(Public_NoteActivity.this, Map.class);
-            intent.putExtra("taskLocation", taskLocationText); // Passer la localisation à l'activité Map
-            startActivityForResult(intent, 2);  // Modifier l'adresse via la carte
+            intent.putExtra("taskLocation", taskLocationText);
+            startActivityForResult(intent, 2);
         });
-        // Lorsque l'on clique sur la tâche, on affiche ou cache la description et le bouton
+
         taskView.setOnClickListener(v -> {
             if (descriptionScrollView.getVisibility() == View.GONE) {
-                descriptionScrollView.setVisibility(View.VISIBLE); // Afficher la description
-                openMapButton.setVisibility(View.VISIBLE); // Afficher le bouton "See on map"
+                descriptionScrollView.setVisibility(View.VISIBLE);
+                openMapButton.setVisibility(View.VISIBLE);
             } else {
-                descriptionScrollView.setVisibility(View.GONE); // Cacher la description
-                openMapButton.setVisibility(View.GONE); // Cacher le bouton "See on map"
+                descriptionScrollView.setVisibility(View.GONE);
+                openMapButton.setVisibility(View.GONE);
             }
         });
-        // Gérer le clic sur le menu d'options
-        optionMenu.setOnClickListener(v -> {
-            PopupMenu popupMenu = new PopupMenu(Public_NoteActivity.this, v);
-            popupMenu.inflate(R.menu.menu_task_options);
 
-            popupMenu.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == R.id.optionModify) {
-                    // Modification de la tâche
-                    String currentTitle = taskTitle.getText().toString();
-                    String currentDates = taskDates.getText().toString();
-                    String currentLocation = taskLocation.getText().toString();
-                    String currentDescription = taskDescription.getText().toString();
-                    showEditTaskDialog(taskView, currentTitle, currentDates, currentLocation, currentDescription);
-                } else if (item.getItemId() == R.id.optionDelete) {
-                    // Suppression avec confirmation
-                    confirmAndDeleteTask(taskView);
-                } else {
-                    return false;
-                }
-                return true;
+        // 👇 Contrôle d'accès au menu Modifier/Supprimer
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && !currentUser.getUid().equals(taskUserId)) {
+            optionMenu.setVisibility(View.GONE);  // Cacher si ce n'est pas le créateur
+        } else {
+            optionMenu.setVisibility(View.VISIBLE);  // Montrer si c'est le créateur
+
+            optionMenu.setOnClickListener(v -> {
+                PopupMenu popupMenu = new PopupMenu(Public_NoteActivity.this, v);
+                popupMenu.inflate(R.menu.menu_task_options);
+
+                popupMenu.setOnMenuItemClickListener(item -> {
+                    if (item.getItemId() == R.id.optionModify) {
+                        String currentTitle = taskTitle.getText().toString();
+                        String currentDates = taskDates.getText().toString();
+                        String currentLocation = taskLocation.getText().toString();
+                        String currentDescription = taskDescription.getText().toString();
+                        showEditTaskDialog(taskView, currentTitle, currentDates, currentLocation, currentDescription);
+                    } else if (item.getItemId() == R.id.optionDelete) {
+                        confirmAndDeleteTask(taskView);
+                    } else {
+                        return false;
+                    }
+                    return true;
+                });
+
+                popupMenu.show();
             });
+        }
 
-            popupMenu.show();
-        });
         taskContainer.addView(taskView, 0);
         return taskView;
     }
+
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates, String currentLocation,String currentDescription) {
         // Chargement du layout du dialogue
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
@@ -367,7 +375,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
         TextView map = dialogView.findViewById(R.id.locationTextView);
         // Remplir les champs avec les valeurs actuelles
         editTaskTitle.setText(currentTitle);
-        editEndDate.setText(currentDates.split("\n")[1].replace("Event Date: ", ""));
+        editEndDate.setText(currentDates.replace("Event Date: ", ""));
         editTaskLocation.setText(currentLocation);
         editPublicTaskDescription.setText(currentDescription);
         // Redirection vers la carte pour modifier l'adresse
