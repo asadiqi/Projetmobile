@@ -60,8 +60,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
                 startActivity(intent);
             }
         }
-
-
         // Initialisation des vues
         buttonAddNote = findViewById(R.id.button_addNote);
         taskContainer = findViewById(R.id.taskContainer);
@@ -78,14 +76,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
         buttonAddNote.setOnClickListener(v -> showAddPrivateTaskDialog());
 
     }
-
-    @Override
-    public void onAddressUpdated(String address) {
-
-    }
-
-
-
     private void loadUserTasks() {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
@@ -113,7 +103,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
                     .addOnFailureListener(e -> showToast("Error loading tasks"));
         }
     }
-
     private void showAddPrivateTaskDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_private_task, null);
         EditText privateTaskTitle = dialogView.findViewById(R.id.editprivateTasktitle);
@@ -127,17 +116,14 @@ public class Private_NoteActivity extends BaseNoteActivity {
 
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
-
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             if (validateInput(privateTaskTitle, textViewTaskEndDate)) {
                 createTask(privateTaskTitle.getText().toString().trim());
                 alertDialog.dismiss();
             }
         });
-
         textViewTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewTaskEndDate));
     }
-
     private void createTask(String taskTitle) {
         String endDate = textViewTaskEndDate.getText().toString().trim();
 
@@ -153,8 +139,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
                         taskView.setTag(taskId);
                         loadUserTasks();
                         showToast("Task Added");
-
-
                         // Convertir la date de fin en timestamp et planifier la notification
                         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
                         try {
@@ -178,7 +162,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
                                 if (oneMinuteBefore > now) {
                                     helper.scheduleReminderNotification(taskTitle, oneMinuteBefore, "reminder_1m", userId);
                                 }
-
                             } else {
                                 showToast("Erreur : date nulle");
                             }
@@ -186,12 +169,10 @@ public class Private_NoteActivity extends BaseNoteActivity {
                             showToast("Format de date invalide. Utilisez dd/MM/yyyy HH:mm");
                             e.printStackTrace();
                         }
-
                     })
                     .addOnFailureListener(e -> showToast("Error saving task"));
         }
     }
-
     private boolean validateInput(EditText titleField,  TextView endDateField) {
         String title = titleField.getText().toString().trim();
         String endDateStr = endDateField.getText().toString().trim();
@@ -199,8 +180,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
         if (title.isEmpty()) {
             showToast("Please enter a Title");
             return false;
-
-
         }
         if (endDateStr.isEmpty()) {
             showToast("Please select an End Date and Time");
@@ -209,10 +188,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
         //return isValidDateRange(startDateStr, endDateStr);
         return true;
     }
-
-    // Méthode modifiée de validation de la plage de dates
-
-
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
@@ -317,7 +292,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
         taskContainer.addView(taskView, 0);
         return taskView;
     }
-
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates) {
         // Créer une vue pour le dialogue d'édition
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_private_task, null);
@@ -447,7 +421,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
                                             });
                                 }
                             });
-
                 })
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
@@ -470,13 +443,10 @@ public class Private_NoteActivity extends BaseNoteActivity {
         alarmManager.cancel(pendingIntent);
     }
 
-
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
     }
-
-
 
 }
 

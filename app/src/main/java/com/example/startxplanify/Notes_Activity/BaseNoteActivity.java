@@ -81,5 +81,7 @@ public abstract class BaseNoteActivity extends AppCompatActivity {
     }
 
 
-    public abstract void onAddressUpdated(String address);
+    public void onAddressUpdated(String address) {
+
+    }
 }
