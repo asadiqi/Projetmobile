@@ -71,24 +71,27 @@ public class Public_NoteActivity extends BaseNoteActivity {
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                            PublicTaskModel public_task = doc.toObject(PublicTaskModel.class);
-                            if (public_task != null) {
-                                String creatorName = public_task.getCreatorName();  // Récupère le nom du créateur depuis le modèle
-                                View taskView = addTaskToUI(
-                                        public_task.getTitle(),
-                                        public_task.getEventDate(),
-                                        public_task.getLocation(),
-                                        public_task.getDescription(),
-                                        creatorName,
-                                        public_task.getUserId()// Passe le nom du créateur à la méthode
-                                );
-                                taskView.setTag(public_task.getId());
+                            PublicTaskModel task = doc.toObject(PublicTaskModel.class);
+                            if (task != null) {
+                                View taskView = createTaskViewFromModel(task);
+                                taskView.setTag(task.getId());
                             }
                         }
                     })
                     .addOnFailureListener(e -> showToast("Error loading tasks"));
         }
     }
+    private View createTaskViewFromModel(PublicTaskModel task) {
+        return addTaskToUI(
+                task.getTitle(),
+                task.getEventDate(),
+                task.getLocation(),
+                task.getDescription(),
+                task.getCreatorName(),
+                task.getUserId()
+        );
+    }
+
 
     private void showAddPublicTaskDialog() {
         // Chargement du layout du dialogue
