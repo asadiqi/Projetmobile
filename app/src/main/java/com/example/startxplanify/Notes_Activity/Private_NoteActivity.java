@@ -53,6 +53,23 @@ public class Private_NoteActivity extends BaseNoteActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
 
+        initializeViews();
+        checkExactAlarmPermission();
+        initializeFirebase();
+        setupDrawerAndNavigation();
+        loadUserTasks();
+        setupAddNoteButton();
+    }
+    
+    private void initializeViews() {
+        buttonAddNote = findViewById(R.id.button_addNote);
+        taskContainer = findViewById(R.id.taskContainer);
+    }
+    private void initializeFirebase() {
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+    }
+    private void checkExactAlarmPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
@@ -60,19 +77,11 @@ public class Private_NoteActivity extends BaseNoteActivity {
                 startActivity(intent);
             }
         }
-        // Initialisation des vues
-        buttonAddNote = findViewById(R.id.button_addNote);
-        taskContainer = findViewById(R.id.taskContainer);
-        setupDrawerAndNavigation();
-
-        // Firebase setup
-        auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        // Chargement des tâches
-        loadUserTasks();
-        // Gestion du clic sur le bouton Ajouter une tâche
+    }
+    private void setupAddNoteButton() {
         buttonAddNote.setOnClickListener(v -> showAddPrivateTaskDialog());
     }
+
     private void loadUserTasks() {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
@@ -360,7 +369,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
                                         manager.cancel(notifId + 1); // J-1
                                         manager.cancel(notifId + 2); // H-1
                                         manager.cancel(notifId + 3); // M-1
-
                                         // 2. Annuler les AlarmManager programmés
                                         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
@@ -384,7 +392,6 @@ public class Private_NoteActivity extends BaseNoteActivity {
                                             }
                                         }
                                     }
-
                                     // 3. Supprimer la tâche
                                     db.collection("private_tasks").document(taskId)
                                             .delete()
