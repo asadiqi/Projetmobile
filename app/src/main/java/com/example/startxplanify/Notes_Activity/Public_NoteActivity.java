@@ -316,10 +316,9 @@ public class Public_NoteActivity extends BaseNoteActivity {
         });
 
         Button translateButton = taskView.findViewById(R.id.translateButton);
-        String originalText = description; // Tu l'as déjà sous la main depuis le paramètre de la méthode
-        Translate translateHelper = new Translate(this, translateButton, originalText);
-        translateHelper.setupTranslateButton(); // Applique le comportement
-
+        String originalText = description.replace("Description: ", "").trim();
+        Translate translator = new Translate(this, translateButton, originalText);
+        translator.setupTranslateButton();
 
         Button participateButton = taskView.findViewById(R.id.participateButton);
         Participate participateHandler = new Participate(this, participateButton);
