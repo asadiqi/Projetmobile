@@ -20,7 +20,7 @@ import android.widget.LinearLayout;
 import androidx.appcompat.app.AlertDialog;
 import com.example.startxplanify.Main.Map;
 import com.example.startxplanify.Main.Participate;
-import com.example.startxplanify.Main.Translate;
+import com.example.startxplanify.Translate.Translate;
 import com.example.startxplanify.Models.PublicTaskModel;
 import com.example.startxplanify.R;
 import com.google.firebase.firestore.DocumentSnapshot;
