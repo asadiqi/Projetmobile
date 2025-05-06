@@ -19,6 +19,8 @@ import android.widget.Toast;
 import android.widget.LinearLayout;
 import androidx.appcompat.app.AlertDialog;
 import com.example.startxplanify.Main.Map;
+import com.example.startxplanify.Main.Participate;
+import com.example.startxplanify.Main.Translate;
 import com.example.startxplanify.Models.PublicTaskModel;
 import com.example.startxplanify.R;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -314,18 +316,16 @@ public class Public_NoteActivity extends BaseNoteActivity {
         });
 
         Button translateButton = taskView.findViewById(R.id.translateButton);
-        translateButton.setVisibility(View.GONE); // Cacher le bouton de traduction par défaut
-        translateButton.setOnClickListener(v -> {
-            String originalText = taskDescription.getText().toString().replace("Description: ", "").trim();
-            String fakeTranslation = "[EN] " + originalText; // Traduction fictive, peut être remplacée par une vraie API de traduction
-            Toast.makeText(this, "Traduction : " + fakeTranslation, Toast.LENGTH_SHORT).show();
-        });
+        String originalText = description; // Tu l'as déjà sous la main depuis le paramètre de la méthode
+        Translate translateHelper = new Translate(this, translateButton, originalText);
+        translateHelper.setupTranslateButton(); // Applique le comportement
 
-        Button participateButton = taskView.findViewById(R.id.participateButton); // Récupérer le bouton Participate
-        participateButton.setVisibility(View.GONE); // Le bouton est caché par défaut
-        participateButton.setOnClickListener(v -> {
-            Toast.makeText(this, "You have successfully participated in this task!", Toast.LENGTH_SHORT).show();
-        });
+
+        Button participateButton = taskView.findViewById(R.id.participateButton);
+        Participate participateHandler = new Participate(this, participateButton);
+        participateHandler.setupParticipateButton();
+        participateButton.setVisibility(View.GONE); // Masquer par défaut
+
 
         taskView.setOnClickListener(v -> {
             boolean isVisible = descriptionScrollView.getVisibility() == View.VISIBLE;
