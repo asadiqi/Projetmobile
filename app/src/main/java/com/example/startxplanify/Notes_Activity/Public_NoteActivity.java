@@ -306,7 +306,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
 
         Button openMapButton = taskView.findViewById(R.id.openMapButton);
         openMapButton.setVisibility(View.GONE);
-        openMapButton.setText("See on map");
         openMapButton.setOnClickListener(v -> {
             String taskLocationText = taskLocation.getText().toString().replace("Location: ", "").trim();
             Intent intent = new Intent(Public_NoteActivity.this, Map.class);
@@ -314,14 +313,27 @@ public class Public_NoteActivity extends BaseNoteActivity {
             startActivityForResult(intent, 2);
         });
 
+        Button translateButton = taskView.findViewById(R.id.translateButton);
+        translateButton.setVisibility(View.GONE); // Cacher le bouton de traduction par défaut
+        translateButton.setOnClickListener(v -> {
+            String originalText = taskDescription.getText().toString().replace("Description: ", "").trim();
+            String fakeTranslation = "[EN] " + originalText; // Traduction fictive, peut être remplacée par une vraie API de traduction
+            Toast.makeText(this, "Traduction : " + fakeTranslation, Toast.LENGTH_SHORT).show();
+        });
+
+        Button participateButton = taskView.findViewById(R.id.participateButton); // Récupérer le bouton Participate
+        participateButton.setVisibility(View.GONE); // Le bouton est caché par défaut
+        participateButton.setOnClickListener(v -> {
+            Toast.makeText(this, "You have successfully participated in this task!", Toast.LENGTH_SHORT).show();
+        });
+
         taskView.setOnClickListener(v -> {
-            if (descriptionScrollView.getVisibility() == View.GONE) {
-                descriptionScrollView.setVisibility(View.VISIBLE);
-                openMapButton.setVisibility(View.VISIBLE);
-            } else {
-                descriptionScrollView.setVisibility(View.GONE);
-                openMapButton.setVisibility(View.GONE);
-            }
+            boolean isVisible = descriptionScrollView.getVisibility() == View.VISIBLE;
+            descriptionScrollView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+            openMapButton.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+            translateButton.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+            participateButton.setVisibility(isVisible ? View.GONE : View.VISIBLE); // Montrer/masquer le bouton Participate
+
         });
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
