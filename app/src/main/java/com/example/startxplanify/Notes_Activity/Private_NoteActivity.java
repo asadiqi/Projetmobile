@@ -60,7 +60,7 @@ public class Private_NoteActivity extends BaseNoteActivity {
         loadUserTasks();
         setupAddNoteButton();
     }
-    
+
     private void initializeViews() {
         buttonAddNote = findViewById(R.id.button_addNote);
         taskContainer = findViewById(R.id.taskContainer);

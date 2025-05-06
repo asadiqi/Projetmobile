@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 import androidx.appcompat.app.AlertDialog;
-
 import com.example.startxplanify.Main.Map;
 import com.example.startxplanify.Models.PublicTaskModel;
 import com.example.startxplanify.R;
@@ -27,7 +26,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import android.widget.PopupMenu;
-
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Public_NoteActivity extends BaseNoteActivity {
     private Button buttonAddNote;
     private TextView  textViewPublicTaskEndDate;
-    private TextView locationTextView; // Déclarez le TextView pour l'adresse complète
+    private TextView locationTextView;
     private LinearLayout taskContainer;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -92,7 +90,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         );
     }
 
-
     private void showAddPublicTaskDialog() {
         // Chargement du layout du dialogue
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
@@ -129,7 +126,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 alertDialog.dismiss();
             }
         });
-
         // Gestion des sélecteurs de date
         textViewPublicTaskEndDate.setOnClickListener(v -> showDateTimePicker(textViewPublicTaskEndDate));
     }
@@ -188,6 +184,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
         alertDialog = builder.create();
         alertDialog.show();
     }
+
     private void createPublicTask(String title, String endDate, String location, String description) {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
@@ -262,10 +259,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         }
         return true;
     }
-
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
     private void showDateTimePicker(TextView textView) {
         final Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePickerDialog = new DatePickerDialog(this,
@@ -331,13 +324,11 @@ public class Public_NoteActivity extends BaseNoteActivity {
             }
         });
 
-        // 👇 Contrôle d'accès au menu Modifier/Supprimer
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null && !currentUser.getUid().equals(taskUserId)) {
             optionMenu.setVisibility(View.GONE);  // Cacher si ce n'est pas le créateur
         } else {
             optionMenu.setVisibility(View.VISIBLE);  // Montrer si c'est le créateur
-
             optionMenu.setOnClickListener(v -> {
                 PopupMenu popupMenu = new PopupMenu(Public_NoteActivity.this, v);
                 popupMenu.inflate(R.menu.menu_task_options);
@@ -356,11 +347,9 @@ public class Public_NoteActivity extends BaseNoteActivity {
                     }
                     return true;
                 });
-
                 popupMenu.show();
             });
         }
-
         taskContainer.addView(taskView, 0);
         return taskView;
     }
@@ -368,7 +357,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates, String currentLocation,String currentDescription) {
         // Chargement du layout du dialogue
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
-
         // Récupération des éléments du formulaire
         EditText editTaskTitle = dialogView.findViewById(R.id.editpublicTasktitle);
         EditText editPublicTaskDescription = dialogView.findViewById(R.id.editPublicTaskDescription);
@@ -403,12 +391,10 @@ public class Public_NoteActivity extends BaseNoteActivity {
             String description = editPublicTaskDescription.getText().toString().trim();
             String endDate = editEndDate.getText().toString().trim();
             String location = editTaskLocation.getText().toString().trim();
-
             // Validation des données
             if (validateInput(editTaskTitle, editEndDate, editTaskLocation,editPublicTaskDescription)) {
                 // Si tout est valide, on met à jour Firestore et l'interface utilisateur
                 String taskId = (String) taskView.getTag();  // Récupérer l'ID de la tâche à partir du tag
-
                 // Création du modèle de la tâche mise à jour
                 PublicTaskModel updatedTask = new PublicTaskModel(taskId, title, endDate, auth.getCurrentUser().getUid(), location,description,creatorName);
                 // Mettre à jour la tâche dans Firestore
@@ -461,6 +447,11 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss()) // Fermer la boîte de dialogue sans suppression
                 .show();
     }
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
@@ -468,7 +459,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
     @Override
     public void onAddressUpdated(String address) {
         locationTextView.setText(address);
-
     }
 }
 
