@@ -48,11 +48,20 @@ public abstract class BaseNoteActivity extends AppCompatActivity {
             Intent intent = new Intent(this, Private_NoteActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-        }else if (itemId == R.id.nav_announcements) {
+        }
+
+        else if (itemId == R.id.nav_announcements) {
             Intent intent = new Intent(this, Public_NoteActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
         }
+
+        else if (itemId == R.id.nav_my_public_tasks) {
+            Intent intent = new Intent(this, MyPublicTasks_Activity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
+
         else if (itemId == R.id.nav_about) {
             Intent intent = new Intent(this, About.class);
             startActivity(intent);

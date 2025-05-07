@@ -8,14 +8,16 @@
         android:title="📢  Announcements"/>
 
     <item
+        android:id="@+id/nav_my_public_tasks"
+        android:title="📋  My Public Tasks"/>
+
+    <item
         android:id="@+id/nav_about"
         android:title="ℹ️  About Us"/>
     <item
         android:id="@+id/nav_settings"
         android:title="⚙️  Settings"/>
-    <item
-        android:title=" "
-        android:enabled="false"/>
+
     <item
         android:title=" "
         android:enabled="false"/>
