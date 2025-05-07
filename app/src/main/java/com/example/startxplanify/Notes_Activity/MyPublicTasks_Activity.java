@@ -53,7 +53,10 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
     private void loadUserTasks() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
+            String currentUserId = user.getUid();
+
             db.collection("public_tasks")
+                    .whereEqualTo("userId", currentUserId) // filtre ici
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
