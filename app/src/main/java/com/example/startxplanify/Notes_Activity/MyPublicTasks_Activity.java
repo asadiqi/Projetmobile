@@ -80,7 +80,7 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
     }
 
     private View addTaskToUI(String title, String endDate, String location, String description, String creatorName, String taskUserId) {
-        View taskView = LayoutInflater.from(this).inflate(R.layout.item_public_task, taskContainer, false);
+        View taskView = LayoutInflater.from(this).inflate(R.layout.item_mypublicasks, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
         TextView taskTitle = taskView.findViewById(R.id.publictaskTitle);

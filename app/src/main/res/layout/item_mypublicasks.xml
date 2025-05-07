@@ -1,0 +1,125 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:layout_marginBottom="10dp">
+
+    <!-- Conteneur LinearLayout pour les autres éléments -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_textview"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/publictaskTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Task Title"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:layout_marginBottom="8dp"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/publictaskDates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Event Date: "
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:layout_marginBottom="5dp"
+            android:textStyle="bold"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Location: "
+            android:textSize="14sp"
+            android:layout_marginBottom="5dp"
+            android:maxLines="2"
+            android:textStyle="bold"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/creatorName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Created by: Person Name"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:layout_marginBottom="5dp"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+        <!-- Description défilable dans un ScrollView -->
+        <ScrollView
+            android:id="@+id/descriptionScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:padding="10dp" />
+
+        </ScrollView>
+
+        <!-- LinearLayout horizontal pour les trois boutons côte à côte -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:layout_marginEnd="0dp">
+            <!-- Bouton "See on map" -->
+            <Button
+                android:id="@+id/openMapButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="See on map"
+                android:visibility="gone"
+                android:layout_weight="1"
+                android:background="@drawable/background_button_intro"
+                android:textSize="12sp"
+                android:padding="8dp"
+                android:layout_marginEnd="5dp" />
+
+            <!-- Bouton "Translate" -->
+            <Button
+                android:id="@+id/translateButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Translate"
+                android:visibility="gone"
+                android:layout_weight="1"
+                android:background="@drawable/background_button_intro"
+                android:textSize="12sp"
+                android:padding="8dp"
+                android:layout_marginEnd="5dp" />
+
+            <!-- Bouton "Participate" -->
+            <Button
+                android:id="@+id/participateButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Participate"
+                android:visibility="gone"
+                android:layout_weight="1"
+                android:background="@drawable/background_button_intro"
+                android:textSize="12sp"
+                android:padding="8dp"
+                android:layout_marginEnd="0dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>
