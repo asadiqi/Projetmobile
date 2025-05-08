@@ -31,7 +31,8 @@ public class MyPoints_Activity extends BaseNoteActivity {
 
         initViews();
         initFirebase();
-        loadUserPoints();  // Charger les points de l'utilisateur
+        loadUserPoints();
+
     }
 
     // Initialisation des vues
@@ -52,28 +53,36 @@ public class MyPoints_Activity extends BaseNoteActivity {
         addNoteButton.setVisibility(View.GONE);
     }
 
-    // Charger les points de l'utilisateur connecté
     private void loadUserPoints() {
-        FirebaseUser user = auth.getCurrentUser();
-        if (user != null) {
-            String currentUserId = user.getUid();
-
-            // Utiliser un listener pour détecter les mises à jour en temps réel
-            db.collection("users").document(currentUserId)
-                    .addSnapshotListener((documentSnapshot, e) -> {
-                        if (documentSnapshot != null && documentSnapshot.exists()) {
-                            Long points = documentSnapshot.getLong("points");
-                            if (points != null) {
-                                pointsTextView.setText("Your Points: " + points);
-                            } else {
-                                pointsTextView.setText("Your Points: 0");
-                            }
-                        }
-                    });
-        } else {
-            showToast("User not logged in.");
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            showToast("Utilisateur non connecté");
+            return;
         }
+
+        String uid = currentUser.getUid();
+
+        db.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Long points = documentSnapshot.getLong("points");
+                        if (points != null) {
+                            pointsTextView.setText("Vos points : " + points);
+                        } else {
+                            pointsTextView.setText("Aucun point disponible");
+                        }
+                    } else {
+                        pointsTextView.setText("Utilisateur introuvable");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    showToast("Erreur de chargement des points");
+                });
     }
+
+
+
 
 
 
