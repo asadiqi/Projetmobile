@@ -34,6 +34,8 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
+        Button addNoteButton = findViewById(R.id.button_addNote);
+        addNoteButton.setVisibility(View.GONE);
 
         initViews();
         initFirebase();
