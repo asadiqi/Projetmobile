@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -122,6 +123,7 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
 
         Button givePointsButton = taskView.findViewById(R.id.gievPointsToParticipants);  // Référence au bouton
         givePointsButton.setVisibility(View.GONE);
+        givePointsButton.setTag(task); // nécessaire pour récupérer la tâche dans le listener
 
 
         // Interaction sur la vue de la tâche
@@ -180,65 +182,44 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
     }
 
     private void setupGivePointsButton(PublicTaskModel task, Button givePointsButton) {
-        givePointsButton.setOnClickListener(v -> showGivePointsDialog(task));
-    }
+        givePointsButton.setOnClickListener(v -> {
+            if (task == null || task.getId() == null) {
+                showToast("Invalid task.");
+                return;
+            }
 
-    // Afficher le pop-up de confirmation pour donner des points
-    private void showGivePointsDialog(PublicTaskModel task) {
-        // Créer un dialog avec un message de confirmation
-        new AlertDialog.Builder(this)
-                .setTitle("Give Points?")
-                .setMessage("Would you like to give a point to the participants of this task and mark it as completed?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                     givePointsToParticipants(task);
-                      //  markTaskAsCompleted(task);
-                    }
-                })
-                .setNegativeButton("No", null)  // Si l'utilisateur clique sur "No", fermer le pop-up
-                .show();
-    }
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    public void givePointsToParticipants(PublicTaskModel task) {
-        FirebaseFirestore.getInstance()
-                .collection("public_tasks")
-                .document(task.getId())
-                .collection("participants")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        String email = doc.getString("email");
+            db.collection("public_tasks")
+                    .document(task.getId())
+                    .collection("participants")
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                            String uid = doc.getString("uid");
 
-                        if (email != null) {
-                            // Rechercher l'utilisateur par email dans la collection "users"
-                            FirebaseFirestore.getInstance()
-                                    .collection("users")
-                                    .whereEqualTo("email", email)
-                                    .get()
-                                    .addOnSuccessListener(userQuery -> {
-                                        if (!userQuery.isEmpty()) {
-                                            // Utilisateur trouvé, on incrémente les points
-                                            DocumentSnapshot userDoc = userQuery.getDocuments().get(0);
-                                            String uid = userDoc.getId();  // Récupérer l'ID de l'utilisateur
-                                            FirebaseFirestore.getInstance()
-                                                    .collection("users")
-                                                    .document(uid)  // Utiliser l'ID de l'utilisateur
-                                                    .update("points", FieldValue.increment(1))  // Ajouter 1 point
-                                                    .addOnSuccessListener(aVoid -> {
-                                                        // Mettre à jour les points dans l'interface utilisateur
-                                                        showToast("Points added to " + email);
-                                                    })
-                                                    .addOnFailureListener(e -> showToast("Error updating points for " + email));
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> showToast("Error retrieving user by email"));
+                            if (uid != null && !uid.isEmpty()) {
+                                // Ajouter 1 point à l'utilisateur dans la collection "users"
+                                db.collection("users").document(uid)
+                                        .update("points", FieldValue.increment(1))
+                                        .addOnSuccessListener(aVoid -> Log.d("GivePoints", "Point donné à " + uid))
+                                        .addOnFailureListener(e -> Log.e("GivePoints", "Erreur lors de l'ajout de points pour " + uid));
+                            }
                         }
-                    }
-                    showToast("Points have been given to all participants.");
-                })
-                .addOnFailureListener(e -> showToast("Error giving points to participants"));
+
+                        showToast("Points donnés aux participants !");
+                    })
+                    .addOnFailureListener(e -> {
+                        showToast("Erreur lors de la récupération des participants.");
+                        Log.e("GivePoints", "Erreur : ", e);
+                    });
+        });
     }
+
+
+
+
+
 
 
     // Marquer la tâche comme terminée

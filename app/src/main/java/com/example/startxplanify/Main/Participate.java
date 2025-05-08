@@ -50,7 +50,6 @@ public class Participate {
                             participant.put("uid", uid);
                             participant.put("email", email);
 
-
                             db.collection("public_tasks").document(taskId)
                                     .collection("participants")
                                     .add(participant)
