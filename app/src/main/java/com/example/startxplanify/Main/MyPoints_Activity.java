@@ -7,9 +7,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.startxplanify.Models.PublicTaskModel;
 import com.example.startxplanify.Notes_Activity.BaseNoteActivity;
 import com.example.startxplanify.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -55,28 +58,24 @@ public class MyPoints_Activity extends BaseNoteActivity {
         if (user != null) {
             String currentUserId = user.getUid();
 
-            // Accéder aux points de l'utilisateur dans la collection "users"
+            // Utiliser un listener pour détecter les mises à jour en temps réel
             db.collection("users").document(currentUserId)
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            // Récupérer les points de l'utilisateur
+                    .addSnapshotListener((documentSnapshot, e) -> {
+                        if (documentSnapshot != null && documentSnapshot.exists()) {
                             Long points = documentSnapshot.getLong("points");
                             if (points != null) {
-                                // Afficher les points dans le TextView
                                 pointsTextView.setText("Your Points: " + points);
                             } else {
                                 pointsTextView.setText("Your Points: 0");
                             }
-                        } else {
-                            showToast("User not found.");
                         }
-                    })
-                    .addOnFailureListener(e -> showToast("Error loading points"));
+                    });
         } else {
             showToast("User not logged in.");
         }
     }
+
+
 
     // Afficher un toast
     private void showToast(String message) {

@@ -11,6 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.startxplanify.Main.MyPoints_Activity;
 import com.example.startxplanify.Models.PublicTaskModel;
 import com.example.startxplanify.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -190,8 +192,7 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // Lorsque l'utilisateur clique sur "Yes", donner des points aux participants et marquer la tâche comme terminée
-                        givePointsToParticipants(task);
+                     givePointsToParticipants(task);
                       //  markTaskAsCompleted(task);
                     }
                 })
@@ -199,8 +200,7 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
                 .show();
     }
 
-    // Donner un point à chaque participant
-    private void givePointsToParticipants(PublicTaskModel task) {
+    public void givePointsToParticipants(PublicTaskModel task) {
         FirebaseFirestore.getInstance()
                 .collection("public_tasks")
                 .document(task.getId())
@@ -208,13 +208,13 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        String email = doc.getString("email"); // Récupérer l'email du participant
+                        String email = doc.getString("email");
 
                         if (email != null) {
                             // Rechercher l'utilisateur par email dans la collection "users"
                             FirebaseFirestore.getInstance()
                                     .collection("users")
-                                    .whereEqualTo("email", email)  // Rechercher par email
+                                    .whereEqualTo("email", email)
                                     .get()
                                     .addOnSuccessListener(userQuery -> {
                                         if (!userQuery.isEmpty()) {
@@ -224,7 +224,12 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
                                             FirebaseFirestore.getInstance()
                                                     .collection("users")
                                                     .document(uid)  // Utiliser l'ID de l'utilisateur
-                                                    .update("points", FieldValue.increment(1));  // Ajouter 1 point
+                                                    .update("points", FieldValue.increment(1))  // Ajouter 1 point
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        // Mettre à jour les points dans l'interface utilisateur
+                                                        showToast("Points added to " + email);
+                                                    })
+                                                    .addOnFailureListener(e -> showToast("Error updating points for " + email));
                                         }
                                     })
                                     .addOnFailureListener(e -> showToast("Error retrieving user by email"));
