@@ -1,5 +1,7 @@
 package com.example.startxplanify.Notes_Activity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,6 +16,7 @@ import com.example.startxplanify.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MyPublicTasks_Activity extends BaseNoteActivity {
@@ -109,8 +112,12 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
         TextView participantList = taskView.findViewById(R.id.participantsTextView);
         fetchParticipants(task, participantList);
 
+        Button givePointsButton = taskView.findViewById(R.id.gievPointsToParticipants);  // Référence au bouton
+        givePointsButton.setVisibility(View.GONE);
+
+
         // Interaction sur la vue de la tâche
-        taskView.setOnClickListener(v -> toggleTaskVisibility(descriptionScrollView, participantList));
+        taskView.setOnClickListener(v -> toggleTaskVisibility(descriptionScrollView, participantList,givePointsButton));
 
         return taskView;
     }
@@ -155,12 +162,84 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
     }
 
     // Basculer la visibilité de la description et des participants
-    private void toggleTaskVisibility(ScrollView descriptionScrollView, TextView participantList) {
+    private void toggleTaskVisibility(ScrollView descriptionScrollView, TextView participantList, Button givePointsButton) {
         boolean isVisible = descriptionScrollView.getVisibility() == View.VISIBLE;
         descriptionScrollView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
         participantList.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+        givePointsButton.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+        setupGivePointsButton((PublicTaskModel) givePointsButton.getTag(), givePointsButton);  // Assurez-vous que le modèle de la tâche est passé
+
     }
 
+    private void setupGivePointsButton(PublicTaskModel task, Button givePointsButton) {
+        givePointsButton.setOnClickListener(v -> showGivePointsDialog(task));
+    }
+
+    // Afficher le pop-up de confirmation pour donner des points
+    private void showGivePointsDialog(PublicTaskModel task) {
+        // Créer un dialog avec un message de confirmation
+        new AlertDialog.Builder(this)
+                .setTitle("Give Points?")
+                .setMessage("Would you like to give a point to the participants of this task and mark it as completed?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Lorsque l'utilisateur clique sur "Yes", donner des points aux participants et marquer la tâche comme terminée
+                        givePointsToParticipants(task);
+                      //  markTaskAsCompleted(task);
+                    }
+                })
+                .setNegativeButton("No", null)  // Si l'utilisateur clique sur "No", fermer le pop-up
+                .show();
+    }
+
+    // Donner un point à chaque participant
+    private void givePointsToParticipants(PublicTaskModel task) {
+        FirebaseFirestore.getInstance()
+                .collection("public_tasks")
+                .document(task.getId())
+                .collection("participants")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        String email = doc.getString("email"); // Récupérer l'email du participant
+
+                        if (email != null) {
+                            // Rechercher l'utilisateur par email dans la collection "users"
+                            FirebaseFirestore.getInstance()
+                                    .collection("users")
+                                    .whereEqualTo("email", email)  // Rechercher par email
+                                    .get()
+                                    .addOnSuccessListener(userQuery -> {
+                                        if (!userQuery.isEmpty()) {
+                                            // Utilisateur trouvé, on incrémente les points
+                                            DocumentSnapshot userDoc = userQuery.getDocuments().get(0);
+                                            String uid = userDoc.getId();  // Récupérer l'ID de l'utilisateur
+                                            FirebaseFirestore.getInstance()
+                                                    .collection("users")
+                                                    .document(uid)  // Utiliser l'ID de l'utilisateur
+                                                    .update("points", FieldValue.increment(1));  // Ajouter 1 point
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> showToast("Error retrieving user by email"));
+                        }
+                    }
+                    showToast("Points have been given to all participants.");
+                })
+                .addOnFailureListener(e -> showToast("Error giving points to participants"));
+    }
+
+
+    // Marquer la tâche comme terminée
+   /* private void markTaskAsCompleted(PublicTaskModel task) {
+        FirebaseFirestore.getInstance()
+                .collection("public_tasks")
+                .document(task.getId())
+                .update("status", "completed")  // Mettre à jour le statut de la tâche
+                .addOnSuccessListener(aVoid -> showToast("Task marked as completed."))
+                .addOnFailureListener(e -> showToast("Error marking task as completed"));
+    }
+*/
     // Afficher un toast
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

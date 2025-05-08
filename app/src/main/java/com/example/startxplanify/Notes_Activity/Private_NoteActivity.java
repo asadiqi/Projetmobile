@@ -59,6 +59,7 @@ public class Private_NoteActivity extends BaseNoteActivity {
         setupDrawerAndNavigation();
         loadUserTasks();
         setupAddNoteButton();
+        hideAddpointTexteView();
     }
 
     private void initializeViews() {
@@ -80,6 +81,11 @@ public class Private_NoteActivity extends BaseNoteActivity {
     }
     private void setupAddNoteButton() {
         buttonAddNote.setOnClickListener(v -> showAddPrivateTaskDialog());
+    }
+
+    private void hideAddpointTexteView() {
+        TextView textView = findViewById(R.id.pointsTextView);
+        textView.setVisibility(View.GONE);
     }
 
     private void loadUserTasks() {

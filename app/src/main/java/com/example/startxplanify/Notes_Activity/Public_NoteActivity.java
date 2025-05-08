@@ -50,6 +50,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
         initFirebase();
         setupListeners();
         loadUserTasks();
+        hideAddpointTexteView();
     }
     private void initViews() {
         buttonAddNote = findViewById(R.id.button_addNote);
@@ -62,6 +63,11 @@ public class Public_NoteActivity extends BaseNoteActivity {
     }
     private void setupListeners() {
         buttonAddNote.setOnClickListener(v -> showAddPublicTaskDialog());
+    }
+
+    private void hideAddpointTexteView() {
+      TextView textView = findViewById(R.id.pointsTextView);
+        textView.setVisibility(View.GONE);
     }
 
     private void loadUserTasks() {

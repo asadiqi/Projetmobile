@@ -36,7 +36,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Un Button à une position spécifique -->
         <Button
             android:id="@+id/button_addNote"
             android:layout_width="57dp"
@@ -47,6 +46,17 @@
             android:layout_marginBottom="40dp"
             android:text="+"
             android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/pointsTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Points: 0"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"/>
+
     </FrameLayout>
 
 

@@ -141,13 +141,13 @@ public class SignUpActivity extends AppCompatActivity {
         Map<String, Object> userData = new HashMap<>();
         userData.put("name", name);  // Ajoute le nom de l'utilisateur dans Firestore
         userData.put("email", user.getEmail());
+        userData.put("points", 0);
 
         db.collection("users").document(userId)
                 .set(userData)
                 .addOnSuccessListener(aVoid -> showToast("User added to Firestore"))
                 .addOnFailureListener(e -> showToast("Error adding user to Firestore: " + e.getMessage()));
     }
-
 
 
     private void  showVerificationDialog() {
