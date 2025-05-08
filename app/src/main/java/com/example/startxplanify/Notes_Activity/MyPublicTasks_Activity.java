@@ -73,6 +73,7 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
 
     private View createTaskViewFromModel(PublicTaskModel task) {
         return addTaskToUI(
+                task,
                 task.getTitle(),
                 task.getEventDate(),
                 task.getLocation(),
@@ -82,7 +83,7 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
         );
     }
 
-    private View addTaskToUI(String title, String endDate, String location, String description, String creatorName, String taskUserId) {
+    private View addTaskToUI(PublicTaskModel task, String title, String endDate, String location, String description, String creatorName, String taskUserId) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_mypublicasks, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
@@ -100,12 +101,48 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
         TextView taskDescription = taskView.findViewById(R.id.description);
         taskDescription.setText("Description: " + description);
         descriptionScrollView.setVisibility(View.GONE);
+        TextView participantList = taskView.findViewById(R.id.participantsTextView);
 
         taskView.setOnClickListener(v -> {
             boolean isVisible = descriptionScrollView.getVisibility() == View.VISIBLE;
-            descriptionScrollView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
 
+            descriptionScrollView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+            participantList.setVisibility(isVisible ? View.GONE : View.VISIBLE);
         });
+
+        FirebaseFirestore.getInstance()
+                .collection("public_tasks")
+                .document(task.getId())
+                .collection("participants")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    StringBuilder participants = new StringBuilder("Participants :\n\n");
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        String uid = doc.getString("uid");
+                        String email = doc.getString("email");
+
+                        if (uid != null) {
+                            FirebaseFirestore.getInstance().collection("users").document(uid)
+                                    .get()
+                                    .addOnSuccessListener(userDoc -> {
+                                        String name = userDoc.getString("name");
+                                        if (name == null || name.isEmpty()) {
+                                            name = "Unknown";  // Si le nom est vide ou null, on met "Unknown"
+                                        }
+                                        participants.append("- ").append(name).append(" (").append(email).append(")\n\n");
+                                        participantList.setText(participants.toString());
+                                    });
+                        } else {
+                            participants.append("- Unknown (").append(email).append(")\n");
+                            participantList.setText(participants.toString());
+                        }
+                    }
+                    participantList.setText(participants.toString());
+                    participantList.setVisibility(View.GONE); // Assurez-vous que le TextView est visible
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(MyPublicTasks_Activity.this, "Error loading participants", Toast.LENGTH_SHORT).show();
+                });
 
         taskContainer.addView(taskView, 0);
         return taskView;

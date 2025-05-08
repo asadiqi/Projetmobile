@@ -88,7 +88,8 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 task.getLocation(),
                 task.getDescription(),
                 task.getCreatorName(),
-                task.getUserId()
+                task.getUserId(),
+                task.getId()
         );
     }
 
@@ -212,7 +213,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
                             db.collection("public_tasks").document(taskId).set(publicTask)
                                     .addOnSuccessListener(aVoid -> {
                                         // Afficher la tâche dans l'interface
-                                        View taskView = addTaskToUI(title,  endDate, location, description, creatorName.get(),publicTask.getUserId());
+                                        View taskView = addTaskToUI(title,  endDate, location, description, creatorName.get(),publicTask.getUserId(),taskId);
                                         taskView.setTag(taskId);
                                         showToast("Public Task Added");
                                     })
@@ -226,7 +227,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 db.collection("public_tasks").document(taskId).set(publicTask)
                         .addOnSuccessListener(aVoid -> {
                             // Afficher la tâche dans l'interface
-                            View taskView = addTaskToUI(title, endDate, location, description, creatorName.get(),publicTask.getUserId());
+                            View taskView = addTaskToUI(title, endDate, location, description, creatorName.get(),publicTask.getUserId(),taskId);
                             taskView.setTag(taskId);
                             showToast("Public Task Added");
                         })
@@ -286,7 +287,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 calendar.get(Calendar.DAY_OF_MONTH));
         datePickerDialog.show();
     }
-    private View addTaskToUI(String title, String endDate, String location, String description, String creatorName, String taskUserId) {
+    private View addTaskToUI(String title, String endDate, String location, String description, String creatorName, String taskUserId, String taskId) {
         View taskView = LayoutInflater.from(this).inflate(R.layout.item_public_task, taskContainer, false);
         taskView.setBackgroundResource(isNightMode() ? R.drawable.background_dark : R.drawable.background_light);
 
@@ -318,28 +319,27 @@ public class Public_NoteActivity extends BaseNoteActivity {
         Button translateButton = taskView.findViewById(R.id.translateButton);
         String originalText = description.replace("Description: ", "").trim();
         new Translate(this, translateButton, taskTitle, taskDates, taskLocation, creatorNameTextView, taskDescription).setupTranslateButton();
-        //translator.setupTranslateButton();
 
+        // Set the taskId as the tag on the participateButton
         Button participateButton = taskView.findViewById(R.id.participateButton);
+        participateButton.setTag(taskId);  // Assign the taskId to the participateButton
         Participate participateHandler = new Participate(this, participateButton);
         participateHandler.setupParticipateButton();
-        participateButton.setVisibility(View.GONE); // Masquer par défaut
-
+        participateButton.setVisibility(View.GONE); // Hide the button by default
 
         taskView.setOnClickListener(v -> {
             boolean isVisible = descriptionScrollView.getVisibility() == View.VISIBLE;
             descriptionScrollView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
             openMapButton.setVisibility(isVisible ? View.GONE : View.VISIBLE);
             translateButton.setVisibility(isVisible ? View.GONE : View.VISIBLE);
-            participateButton.setVisibility(isVisible ? View.GONE : View.VISIBLE); // Montrer/masquer le bouton Participate
-
+            participateButton.setVisibility(isVisible ? View.GONE : View.VISIBLE); // Show/hide the participate button
         });
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null && !currentUser.getUid().equals(taskUserId)) {
-            optionMenu.setVisibility(View.GONE);  // Cacher si ce n'est pas le créateur
+            optionMenu.setVisibility(View.GONE);  // Hide if not the creator
         } else {
-            optionMenu.setVisibility(View.VISIBLE);  // Montrer si c'est le créateur
+            optionMenu.setVisibility(View.VISIBLE);  // Show if the creator
             optionMenu.setOnClickListener(v -> {
                 PopupMenu popupMenu = new PopupMenu(Public_NoteActivity.this, v);
                 popupMenu.inflate(R.menu.menu_task_options);
@@ -361,9 +361,11 @@ public class Public_NoteActivity extends BaseNoteActivity {
                 popupMenu.show();
             });
         }
+
         taskContainer.addView(taskView, 0);
         return taskView;
     }
+
 
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates, String currentLocation,String currentDescription) {
         // Chargement du layout du dialogue
