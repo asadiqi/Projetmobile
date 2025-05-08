@@ -183,55 +183,61 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
 
     private void setupGivePointsButton(PublicTaskModel task, Button givePointsButton) {
         givePointsButton.setOnClickListener(v -> {
-            if (task == null || task.getId() == null) {
-                showToast("Invalid task.");
-                return;
-            }
-
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-            db.collection("public_tasks")
-                    .document(task.getId())
-                    .collection("participants")
-                    .get()
-                    .addOnSuccessListener(querySnapshot -> {
-                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                            String uid = doc.getString("uid");
-
-                            if (uid != null && !uid.isEmpty()) {
-                                // Ajouter 1 point à l'utilisateur dans la collection "users"
-                                db.collection("users").document(uid)
-                                        .update("points", FieldValue.increment(1))
-                                        .addOnSuccessListener(aVoid -> Log.d("GivePoints", "Point donné à " + uid))
-                                        .addOnFailureListener(e -> Log.e("GivePoints", "Erreur lors de l'ajout de points pour " + uid));
-                            }
-                        }
-
-                        showToast("Points donnés aux participants !");
+            new AlertDialog.Builder(this)
+                    .setTitle("Give Points")
+                    .setMessage("Are you sure you want to give 1 point to all participants and mark this task as completed?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        givePointsToParticipants(task);
+                        markTaskAsCompleted(task);
                     })
-                    .addOnFailureListener(e -> {
-                        showToast("Erreur lors de la récupération des participants.");
-                        Log.e("GivePoints", "Erreur : ", e);
-                    });
+                    .setNegativeButton("No", null)
+                    .show();
         });
     }
 
-
-
-
-
-
-
-    // Marquer la tâche comme terminée
-   /* private void markTaskAsCompleted(PublicTaskModel task) {
-        FirebaseFirestore.getInstance()
-                .collection("public_tasks")
-                .document(task.getId())
-                .update("status", "completed")  // Mettre à jour le statut de la tâche
-                .addOnSuccessListener(aVoid -> showToast("Task marked as completed."))
-                .addOnFailureListener(e -> showToast("Error marking task as completed"));
+    private void markTaskAsCompleted(PublicTaskModel task) {
+        db.collection("public_tasks").document(task.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    removeTaskFromUI(task.getId());
+                    showToast("Task marked as completed and removed");
+                })
+                .addOnFailureListener(e -> {
+                    showToast("Failed to mark task as completed");
+                });
     }
-*/
+
+    private void removeTaskFromUI(String taskId) {
+        for (int i = 0; i < taskContainer.getChildCount(); i++) {
+            View taskView = taskContainer.getChildAt(i);
+            if (taskId.equals(taskView.getTag())) {
+                taskContainer.removeView(taskView);
+                break;
+            }
+        }
+    }
+
+    private void givePointsToParticipants(PublicTaskModel task) {
+        db.collection("public_tasks")
+                .document(task.getId())
+                .collection("participants")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        String uid = doc.getString("uid");
+                        if (uid != null) {
+                            db.collection("users").document(uid)
+                                    .update("points", FieldValue.increment(1));
+                        }
+                    }
+                    showToast("Points successfully given to all participants");
+                })
+                .addOnFailureListener(e -> {
+                    showToast("Failed to give points");
+                });
+    }
+
+
     // Afficher un toast
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

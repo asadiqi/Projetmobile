@@ -56,7 +56,7 @@ public class MyPoints_Activity extends BaseNoteActivity {
     private void loadUserPoints() {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
-            showToast("Utilisateur non connecté");
+            showToast("User not logged in");
             return;
         }
 
@@ -68,30 +68,23 @@ public class MyPoints_Activity extends BaseNoteActivity {
                     if (documentSnapshot.exists()) {
                         Long points = documentSnapshot.getLong("points");
                         if (points != null) {
-                            pointsTextView.setText("Vos points : " + points);
+                            pointsTextView.setText("Your points: " + points);
                         } else {
-                            pointsTextView.setText("Aucun point disponible");
+                            pointsTextView.setText("No points available");
                         }
                     } else {
-                        pointsTextView.setText("Utilisateur introuvable");
+                        pointsTextView.setText("User not found");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    showToast("Erreur de chargement des points");
+                    showToast("Failed to load points");
                 });
     }
 
-
-
-
-
-
-    // Afficher un toast
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    // Vérifier si le mode nuit est activé
     private boolean isNightMode() {
         SharedPreferences sharedPreferences = getSharedPreferences("settings", MODE_PRIVATE);
         return sharedPreferences.getBoolean("night_mode", false);
