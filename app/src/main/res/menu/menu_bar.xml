@@ -12,15 +12,16 @@
         android:title="📋  My Public Tasks"/>
 
     <item
+        android:id="@+id/nav_my_points"
+        android:title="🎯  My Points"/>
+
+    <item
         android:id="@+id/nav_about"
         android:title="ℹ️  About Us"/>
     <item
         android:id="@+id/nav_settings"
         android:title="⚙️  Settings"/>
 
-    <item
-        android:title=" "
-        android:enabled="false"/>
     <item
         android:title=" "
         android:enabled="false"/>

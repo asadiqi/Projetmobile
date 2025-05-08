@@ -48,6 +48,12 @@
             android:configChanges="orientation|screenSize" />
 
         <activity
+            android:name=".Main.MyPoints_Activity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize" />
+
+
+        <activity
             android:name=".Notes_Activity.MyPublicTasks_Activity"
             android:exported="false"
             android:configChanges="orientation|screenSize" />

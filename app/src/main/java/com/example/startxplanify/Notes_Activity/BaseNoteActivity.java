@@ -12,6 +12,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.startxplanify.Main.About;
 import com.example.startxplanify.Main.MainActivity;
+import com.example.startxplanify.Main.MyPoints_Activity;
 import com.example.startxplanify.R;
 import com.example.startxplanify.Main.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
@@ -58,6 +59,12 @@ public abstract class BaseNoteActivity extends AppCompatActivity {
 
         else if (itemId == R.id.nav_my_public_tasks) {
             Intent intent = new Intent(this, MyPublicTasks_Activity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
+
+        else if (itemId == R.id.nav_my_points) {
+            Intent intent = new Intent(this, MyPoints_Activity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
         }
