@@ -35,6 +35,7 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
         initViews();
         initFirebase();
         loadUserTasks();
+        hideAddpointTexteView();
     }
 
     // Initialisation des vues
@@ -53,6 +54,11 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
     private void hideAddNoteButton() {
         Button addNoteButton = findViewById(R.id.button_addNote);
         addNoteButton.setVisibility(View.GONE);
+    }
+
+    private void hideAddpointTexteView() {
+        TextView textView = findViewById(R.id.pointsTextView);
+        textView.setVisibility(View.GONE);
     }
 
     // Charger les tâches de l'utilisateur connecté
