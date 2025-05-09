@@ -26,7 +26,7 @@
         android:text="Search"
         android:layout_alignParentEnd="true"
         android:layout_below="@id/autoCompleteTaskLocation"
-        android:background="@drawable/background_button_intro"
+        android:background="@drawable/background_button"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:layout_marginStart="10dp"/>
@@ -65,7 +65,7 @@
         android:layout_alignParentStart="true"
         android:layout_marginStart="255dp"
         android:layout_marginBottom="61dp"
-        android:background="@drawable/background_button_intro"
+        android:background="@drawable/background_button"
         android:text="Recenter" />
 
     <ImageView
@@ -83,7 +83,7 @@
         android:layout_alignParentStart="true"
         android:layout_marginStart="11dp"
         android:layout_marginBottom="61dp"
-        android:background="@drawable/background_button_intro"
+        android:background="@drawable/background_button"
         android:text="OK" />
 
     <TextView

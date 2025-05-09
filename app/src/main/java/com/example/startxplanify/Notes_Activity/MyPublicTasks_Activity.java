@@ -1,10 +1,8 @@
 package com.example.startxplanify.Notes_Activity;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -12,8 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.example.startxplanify.Main.MyPoints_Activity;
 import com.example.startxplanify.Models.PublicTaskModel;
 import com.example.startxplanify.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -125,9 +121,14 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
         givePointsButton.setVisibility(View.GONE);
         givePointsButton.setTag(task); // nécessaire pour récupérer la tâche dans le listener
 
+        Button deleteTaskButton = taskView.findViewById(R.id.deleteTask);  // Référence au bouton
+        deleteTaskButton.setVisibility(View.GONE);
+        deleteTaskButton.setTag(task);
+
+
 
         // Interaction sur la vue de la tâche
-        taskView.setOnClickListener(v -> toggleTaskVisibility(descriptionScrollView, participantList,givePointsButton));
+        taskView.setOnClickListener(v -> toggleTaskVisibility(descriptionScrollView, participantList,givePointsButton,deleteTaskButton));
 
         return taskView;
     }
@@ -172,13 +173,16 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
     }
 
     // Basculer la visibilité de la description et des participants
-    private void toggleTaskVisibility(ScrollView descriptionScrollView, TextView participantList, Button givePointsButton) {
+    private void toggleTaskVisibility(ScrollView descriptionScrollView, TextView participantList, Button givePointsButton, Button deleteTaskButton) {
         boolean isVisible = descriptionScrollView.getVisibility() == View.VISIBLE;
         descriptionScrollView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
         participantList.setVisibility(isVisible ? View.GONE : View.VISIBLE);
         givePointsButton.setVisibility(isVisible ? View.GONE : View.VISIBLE);
-        setupGivePointsButton((PublicTaskModel) givePointsButton.getTag(), givePointsButton);  // Assurez-vous que le modèle de la tâche est passé
+        deleteTaskButton.setVisibility(isVisible ? View.GONE : View.VISIBLE);
 
+        PublicTaskModel task = (PublicTaskModel) deleteTaskButton.getTag();
+        setupGivePointsButton(task, givePointsButton);
+        setupDeleteTaskButton(task, deleteTaskButton);
     }
 
     private void setupGivePointsButton(PublicTaskModel task, Button givePointsButton) {
@@ -188,6 +192,19 @@ public class MyPublicTasks_Activity extends BaseNoteActivity {
                     .setMessage("Are you sure you want to give 1 point to all participants and mark this task as completed?")
                     .setPositiveButton("Yes", (dialog, which) -> {
                         givePointsToParticipants(task);
+                        markTaskAsCompleted(task);
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+        });
+    }
+
+    private void setupDeleteTaskButton(PublicTaskModel task, Button deleteTaskButton) {
+        deleteTaskButton.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Task")
+                    .setMessage("Are you sure you want to delete this task? It will be marked as failed, and no points will be awarded.")
+                    .setPositiveButton("Yes", (dialog, which) -> {
                         markTaskAsCompleted(task);
                     })
                     .setNegativeButton("No", null)

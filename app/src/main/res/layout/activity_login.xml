@@ -120,7 +120,7 @@
         android:layout_width="142dp"
         android:layout_height="46dp"
         android:layout_marginTop="80dp"
-        android:background="@drawable/background_button_intro"
+        android:background="@drawable/background_button"
         android:text="@string/login_button"
         app:layout_constraintBottom_toTopOf="@+id/textView_dont_have_account"
         app:layout_constraintEnd_toEndOf="parent"

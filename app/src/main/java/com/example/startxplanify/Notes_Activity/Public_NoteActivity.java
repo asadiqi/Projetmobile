@@ -371,8 +371,6 @@ public class Public_NoteActivity extends BaseNoteActivity {
         taskContainer.addView(taskView, 0);
         return taskView;
     }
-
-
     private void showEditTaskDialog(View taskView, String currentTitle, String currentDates, String currentLocation,String currentDescription) {
         // Chargement du layout du dialogue
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_public_task, null);
@@ -448,7 +446,7 @@ public class Public_NoteActivity extends BaseNoteActivity {
         // Afficher une boîte de dialogue de confirmation
         new AlertDialog.Builder(Public_NoteActivity.this)
                 .setTitle("Delete Task Confirmation")
-                .setMessage("Are you sure you want to delete this task?")
+                .setMessage("Are you sure you want to delete this task? no point will be given to participants")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     // Supprimer la tâche de Firestore
                     db.collection("public_tasks").document(taskId)
